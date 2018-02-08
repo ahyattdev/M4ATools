@@ -10,6 +10,8 @@
 		66B9BE77202CB1EB00FBEDF4 /* M4ATools.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66B9BE6D202CB1EB00FBEDF4 /* M4ATools.framework */; };
 		66B9BE7C202CB1EB00FBEDF4 /* M4AToolsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B9BE7B202CB1EB00FBEDF4 /* M4AToolsTests.swift */; };
 		66B9BE7E202CB1EB00FBEDF4 /* M4ATools.h in Headers */ = {isa = PBXBuildFile; fileRef = 66B9BE70202CB1EB00FBEDF4 /* M4ATools.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		66B9BE88202CB21000FBEDF4 /* M4AFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B9BE87202CB21000FBEDF4 /* M4AFile.swift */; };
+		66B9BE8A202CB31400FBEDF4 /* sample.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 66B9BE89202CB31400FBEDF4 /* sample.m4a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +31,8 @@
 		66B9BE76202CB1EB00FBEDF4 /* M4AToolsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = M4AToolsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		66B9BE7B202CB1EB00FBEDF4 /* M4AToolsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M4AToolsTests.swift; sourceTree = "<group>"; };
 		66B9BE7D202CB1EB00FBEDF4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		66B9BE87202CB21000FBEDF4 /* M4AFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M4AFile.swift; sourceTree = "<group>"; };
+		66B9BE89202CB31400FBEDF4 /* sample.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = sample.m4a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +77,7 @@
 			children = (
 				66B9BE70202CB1EB00FBEDF4 /* M4ATools.h */,
 				66B9BE71202CB1EB00FBEDF4 /* Info.plist */,
+				66B9BE87202CB21000FBEDF4 /* M4AFile.swift */,
 			);
 			path = M4ATools;
 			sourceTree = "<group>";
@@ -80,6 +85,7 @@
 		66B9BE7A202CB1EB00FBEDF4 /* M4AToolsTests */ = {
 			isa = PBXGroup;
 			children = (
+				66B9BE89202CB31400FBEDF4 /* sample.m4a */,
 				66B9BE7B202CB1EB00FBEDF4 /* M4AToolsTests.swift */,
 				66B9BE7D202CB1EB00FBEDF4 /* Info.plist */,
 			);
@@ -148,6 +154,7 @@
 				TargetAttributes = {
 					66B9BE6C202CB1EB00FBEDF4 = {
 						CreatedOnToolsVersion = 9.2;
+						LastSwiftMigration = 0920;
 						ProvisioningStyle = Automatic;
 					};
 					66B9BE75202CB1EB00FBEDF4 = {
@@ -186,6 +193,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66B9BE8A202CB31400FBEDF4 /* sample.m4a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,6 +204,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66B9BE88202CB21000FBEDF4 /* M4AFile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -333,6 +342,7 @@
 		66B9BE82202CB1EB00FBEDF4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -348,6 +358,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.ahyattdev.M4ATools;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
@@ -355,6 +366,7 @@
 		66B9BE83202CB1EB00FBEDF4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -377,6 +389,7 @@
 		66B9BE85202CB1EB00FBEDF4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = TGZ526AV87;
@@ -391,6 +404,7 @@
 		66B9BE86202CB1EB00FBEDF4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = TGZ526AV87;

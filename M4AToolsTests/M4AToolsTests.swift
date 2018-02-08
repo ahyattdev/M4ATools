@@ -7,6 +7,8 @@
 //
 
 import XCTest
+import Foundation
+
 @testable import M4ATools
 
 class M4AToolsTests: XCTestCase {
@@ -21,15 +23,16 @@ class M4AToolsTests: XCTestCase {
         super.tearDown()
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    func testLoadFile() {
+        let bundle = Bundle(for: type(of: self))
+        let url = bundle.url(forResource: "sample", withExtension: "m4a")
+        XCTAssertNotNil(url)
+
+        do {
+            let data = try Data(contentsOf: url!)
+            let audio = try M4AFile(data)
+        } catch {
+            XCTFail()
         }
     }
     
