@@ -15,6 +15,37 @@ public class M4AFile {
         let type: String
         let data: Data
         
+        var children = [Block]()
+        
+        init(type: String, data: Data) {
+            self.type = type
+            self.data = data
+            
+            // Load child blocks
+            // Only explore supported parent blocks for now
+            if type == "moov" || type == "udta" || type == "meta" || type == "ilst" {
+                var index = data.startIndex
+                
+                if type == "meta" {
+                    // The first 4 bytes of meta are empty
+                    index = index.advanced(by: 4)
+                }
+                
+                while index != data.endIndex {
+                    let sizeData = data.subdata(in: index ..< index.advanced(by: 4))
+                    let size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
+                    let typeData = data.subdata(in: index.advanced(by: 4) ..< index.advanced(by: 8))
+                    let type = String(data: typeData, encoding: .utf8)!
+                    
+                    let contents = data.subdata(in: index.advanced(by: 8) ..< index.advanced(by: size))
+                    
+                    children.append(Block(type: type, data: contents))
+                    
+                    index = index.advanced(by: size)
+                }
+            }
+        }
+        
     }
     
     public enum M4AFileError: Error {
@@ -24,11 +55,69 @@ public class M4AFile {
         
     }
     
+    public class Metadata {
+        
+        // 255 byte limit for all except lyrics!
+        
+        public enum MetadataType : String {
+            
+            case album = "©alb"
+            case artist = "©art"
+            case albumArtist = "aART"
+            case comment = "©cmt"
+            case year = "©day"
+            case title = "©nam"
+            case genreID = "gnre"
+            case genreCustom = "©gen"
+            case track = "trkn"
+            case disk = "disk"
+            case composer = "©wrt"
+            case encoder = "©too"
+            case bpm = "tmpo"
+            case copyright = "cprt"
+            case compilation = "cpil"
+            case artwork = "covr"
+            case rating = "rtng"
+            case lyrics = "©lyr"
+            case purchaseDate = "purd"
+            case gapless = "pgap"
+            
+        }
+        
+        fileprivate var blocks: [Block]
+        
+        fileprivate init(_ data: Data) throws {
+            blocks = [Block]()
+            
+            var index = data.startIndex
+            while index != data.endIndex {
+                let sizeData = data.subdata(in: index ..< index.advanced(by: 4))
+                let size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
+                let typeData = data.subdata(in: index.advanced(by: 4) ..< index.advanced(by: 8))
+                let type = String(data: typeData, encoding: .utf8)!
+                
+                let contents = data.subdata(in: index.advanced(by: 8) ..< index.advanced(by: size))
+                
+                blocks.append(Block(type: type, data: contents))
+                
+                index = index.advanced(by: size)
+            }
+            
+            print(blocks)
+        }
+        
+        fileprivate func write() throws {
+
+        }
+    }
+    
     private static let validTypes = ["ftyp", "mdat", "moov", "pnot", "udta", "uuid", "moof", "free",
                                      "skip", "jP2 ", "wide", "load", "ctab", "imap", "matt", "kmat", "clip",
                                      "crgn", "sync", "chap", "tmcd", "scpt", "ssrc", "PICT"]
     
     public var blocks: [Block]
+    
+    public var metadata: Metadata!
     
     public init(_ data: Data) throws {
         blocks = [Block]()
@@ -69,11 +158,18 @@ public class M4AFile {
             index = index.advanced(by: size)
             
             blocks.append(Block(type: type, data: blockContents))
+            
+            if type == "moov" {
+                do {
+                   // metadata = try Metadata(blockContents)
+                }
+                
+            }
         }
-        print(blocks)
+        print()
     }
     
-    public func write(url: URL) {
+    public func write(url: URL) throws {
         
     }
     

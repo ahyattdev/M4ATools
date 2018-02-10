@@ -25,7 +25,7 @@ class M4AToolsTests: XCTestCase {
     
     func testLoadFile() {
         let bundle = Bundle(for: type(of: self))
-        let url = bundle.url(forResource: "sample", withExtension: "m4a")
+        let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
         XCTAssertNotNil(url)
 
         do {

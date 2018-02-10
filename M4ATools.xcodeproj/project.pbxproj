@@ -12,6 +12,7 @@
 		66B9BE7E202CB1EB00FBEDF4 /* M4ATools.h in Headers */ = {isa = PBXBuildFile; fileRef = 66B9BE70202CB1EB00FBEDF4 /* M4ATools.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		66B9BE88202CB21000FBEDF4 /* M4AFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B9BE87202CB21000FBEDF4 /* M4AFile.swift */; };
 		66B9BE8A202CB31400FBEDF4 /* sample.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 66B9BE89202CB31400FBEDF4 /* sample.m4a */; };
+		66B9BE8C202D6F2600FBEDF4 /* sample-metadata.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 66B9BE8B202D6F2600FBEDF4 /* sample-metadata.m4a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,6 +34,7 @@
 		66B9BE7D202CB1EB00FBEDF4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		66B9BE87202CB21000FBEDF4 /* M4AFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M4AFile.swift; sourceTree = "<group>"; };
 		66B9BE89202CB31400FBEDF4 /* sample.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = sample.m4a; sourceTree = "<group>"; };
+		66B9BE8B202D6F2600FBEDF4 /* sample-metadata.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "sample-metadata.m4a"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				66B9BE89202CB31400FBEDF4 /* sample.m4a */,
+				66B9BE8B202D6F2600FBEDF4 /* sample-metadata.m4a */,
 				66B9BE7B202CB1EB00FBEDF4 /* M4AToolsTests.swift */,
 				66B9BE7D202CB1EB00FBEDF4 /* Info.plist */,
 			);
@@ -194,6 +197,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				66B9BE8A202CB31400FBEDF4 /* sample.m4a in Resources */,
+				66B9BE8C202D6F2600FBEDF4 /* sample-metadata.m4a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
