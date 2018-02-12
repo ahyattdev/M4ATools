@@ -35,7 +35,7 @@ public class M4AFile {
                     let sizeData = data.subdata(in: index ..< index.advanced(by: 4))
                     let size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
                     let typeData = data.subdata(in: index.advanced(by: 4) ..< index.advanced(by: 8))
-                    let type = String(data: typeData, encoding: .utf8)!
+                    let type = String(data: typeData, encoding: .macOSRoman)!
                     
                     let contents = data.subdata(in: index.advanced(by: 8) ..< index.advanced(by: size))
                     
@@ -43,6 +43,48 @@ public class M4AFile {
                     
                     index = index.advanced(by: size)
                 }
+            }
+        }
+        
+        func write(_ to: Data) -> Data {
+            var outData = to
+            var size = UInt32(calculateSize()).bigEndian
+            let sizeData = Data(bytes: &size, count: MemoryLayout.size(ofValue: size))
+            print(type)
+            print(type)
+            let typeData = type.data(using: .macOSRoman)!
+            
+            if type == "meta" {
+                size += 4
+                outData.append(contentsOf: [0x00, 0x00, 0x00, 0x00])
+            }
+            
+            if type == "mdat" {
+                outData.append(contentsOf: [0x00, 0x00, 0x00, 0x01])
+            } else {
+                outData.append(sizeData)
+            }
+            
+            outData.append(typeData)
+            if children.isEmpty {
+                outData.append(data)
+            } else {
+                for childBlock in children {
+                    outData = childBlock.write(outData)
+                }
+            }
+            return outData
+        }
+        
+        func calculateSize() -> Int {
+            if children.isEmpty {
+                return 8 + data.count
+            } else {
+                var childSize = 0
+                for child in children {
+                    childSize += child.calculateSize()
+                }
+                return childSize
             }
         }
         
@@ -94,7 +136,7 @@ public class M4AFile {
                 let sizeData = data.subdata(in: index ..< index.advanced(by: 4))
                 let size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
                 let typeData = data.subdata(in: index.advanced(by: 4) ..< index.advanced(by: 8))
-                let type = String(data: typeData, encoding: .utf8)!
+                let type = String(data: typeData, encoding: .macOSRoman)!
                 
                 let contents = data.subdata(in: index.advanced(by: 8) ..< index.advanced(by: size))
                 
@@ -138,7 +180,7 @@ public class M4AFile {
             var size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
             print(size)
             
-            let type = String(data: typeData, encoding: .utf8)!
+            let type = String(data: typeData, encoding: .macOSRoman)!
             print(type)
             
             guard typeIsValid(type) else {
@@ -170,7 +212,12 @@ public class M4AFile {
     }
     
     public func write(url: URL) throws {
+        var data = Data()
+        for block in blocks {
+            data = block.write(data)
+        }
         
+        try data.write(to: url)
     }
     
     private func typeIsValid(_ type: String) -> Bool {

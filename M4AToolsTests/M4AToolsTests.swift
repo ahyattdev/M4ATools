@@ -36,4 +36,18 @@ class M4AToolsTests: XCTestCase {
         }
     }
     
+    func testWriteFile() {
+        let outURL = URL(fileURLWithPath: "/tmp/foo.m4a")
+        let bundle = Bundle(for: type(of: self))
+        let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
+
+        do {
+            let data = try Data(contentsOf: url!)
+            let audio = try M4AFile(data)
+            try audio.write(url: outURL)
+        } catch {
+            XCTFail()
+        }
+    }
+    
 }
