@@ -54,11 +54,6 @@ public class M4AFile {
             print(type)
             let typeData = type.data(using: .macOSRoman)!
             
-            if type == "meta" {
-                size += 4
-                outData.append(contentsOf: [0x00, 0x00, 0x00, 0x00])
-            }
-            
             if type == "mdat" {
                 outData.append(contentsOf: [0x00, 0x00, 0x00, 0x01])
             } else {
@@ -66,6 +61,11 @@ public class M4AFile {
             }
             
             outData.append(typeData)
+            
+            if type == "meta" {
+                outData.append(contentsOf: [0x00, 0x00, 0x00, 0x00])
+            }
+            
             if children.isEmpty {
                 outData.append(data)
             } else {
@@ -80,7 +80,12 @@ public class M4AFile {
             if children.isEmpty {
                 return 8 + data.count
             } else {
-                var childSize = 0
+                var childSize = 8
+                
+                if type == "meta" {
+                    childSize += 4
+                }
+                
                 for child in children {
                     childSize += child.calculateSize()
                 }
@@ -208,7 +213,6 @@ public class M4AFile {
                 
             }
         }
-        print()
     }
     
     public func write(url: URL) throws {
