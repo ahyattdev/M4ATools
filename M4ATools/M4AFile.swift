@@ -10,20 +10,23 @@ import Foundation
 
 public class M4AFile {
     
-    public struct Block {
+    public class Block {
         
         let type: String
         let data: Data
         
+        weak var parent: Block?
+        
         var children = [Block]()
         
-        init(type: String, data: Data) {
+        init(type: String, data: Data, parent: Block?) {
             self.type = type
             self.data = data
             
             // Load child blocks
             // Only explore supported parent blocks for now
-            if type == "moov" || type == "udta" || type == "meta" || type == "ilst" {
+            if type == "moov" || type == "udta" || type == "meta" || type == "ilst" ||
+                (parent != nil && parent!.type == "ilst") {
                 var index = data.startIndex
                 
                 if type == "meta" {
@@ -39,7 +42,8 @@ public class M4AFile {
                     
                     let contents = data.subdata(in: index.advanced(by: 8) ..< index.advanced(by: size))
                     
-                    children.append(Block(type: type, data: contents))
+                    let childBlock = Block(type: type, data: contents, parent: self)
+                    children.append(childBlock)
                     
                     index = index.advanced(by: size)
                 }
@@ -102,11 +106,9 @@ public class M4AFile {
         
     }
     
-    public class Metadata {
+    public enum Metadata {
         
-        // 255 byte limit for all except lyrics!
-        
-        public enum MetadataType : String {
+        public enum StringMetadata : String {
             
             case album = "©alb"
             case artist = "©art"
@@ -114,48 +116,33 @@ public class M4AFile {
             case comment = "©cmt"
             case year = "©day"
             case title = "©nam"
-            case genreID = "gnre"
             case genreCustom = "©gen"
-            case track = "trkn"
-            case disk = "disk"
             case composer = "©wrt"
             case encoder = "©too"
-            case bpm = "tmpo"
             case copyright = "cprt"
             case compilation = "cpil"
-            case artwork = "covr"
-            case rating = "rtng"
             case lyrics = "©lyr"
             case purchaseDate = "purd"
+            
+        }
+        
+        public enum IntMetadata : String {
+            
+            case genreID = "gnre"
+            case track = "trkn"
+            case disk = "disk"
+            case bpm = "tmpo"
+            case rating = "rtng"
             case gapless = "pgap"
             
         }
         
-        fileprivate var blocks: [Block]
-        
-        fileprivate init(_ data: Data) throws {
-            blocks = [Block]()
+        public enum ImageMetadata: String {
             
-            var index = data.startIndex
-            while index != data.endIndex {
-                let sizeData = data.subdata(in: index ..< index.advanced(by: 4))
-                let size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
-                let typeData = data.subdata(in: index.advanced(by: 4) ..< index.advanced(by: 8))
-                let type = String(data: typeData, encoding: .macOSRoman)!
-                
-                let contents = data.subdata(in: index.advanced(by: 8) ..< index.advanced(by: size))
-                
-                blocks.append(Block(type: type, data: contents))
-                
-                index = index.advanced(by: size)
-            }
+            case artwork = "covr"
             
-            print(blocks)
         }
         
-        fileprivate func write() throws {
-
-        }
     }
     
     private static let validTypes = ["ftyp", "mdat", "moov", "pnot", "udta", "uuid", "moof", "free",
@@ -164,7 +151,9 @@ public class M4AFile {
     
     public var blocks: [Block]
     
-    public var metadata: Metadata!
+    public var metadataBlock: Block? {
+        return findBlock(["moov", "udta", "meta", "ilst"])
+    }
     
     public init(_ data: Data) throws {
         blocks = [Block]()
@@ -204,14 +193,7 @@ public class M4AFile {
             
             index = index.advanced(by: size)
             
-            blocks.append(Block(type: type, data: blockContents))
-            
-            if type == "moov" {
-                do {
-                   // metadata = try Metadata(blockContents)
-                }
-                
-            }
+            blocks.append(Block(type: type, data: blockContents, parent: nil))
         }
     }
     
@@ -224,8 +206,97 @@ public class M4AFile {
         try data.write(to: url)
     }
     
+    public func getStringMetadata(_ metadata: Metadata.StringMetadata) -> String? {
+        guard let metadataContainerBlock = self.metadataBlock else {
+            return nil
+        }
+        
+        let type = metadata.rawValue
+        
+        guard let metaBlock = M4AFile.getMetadataBlock(metadataContainer: metadataContainerBlock, name: type) else {
+                return nil
+        }
+        
+        guard let data = M4AFile.readMetadata(metadata: metaBlock) else {
+            return nil
+        }
+        
+        return String(bytes: data, encoding: .utf8)
+    }
+    
+    public func getIntMetadata(_ metadata: Metadata.IntMetadata) -> Int? {
+        return nil
+    }
+    
+    public func setStringMetadata(_ metadata: Metadata.StringMetadata, value: String) {
+        
+    }
+    
+    public func setIntMetadata(_ metadata: Metadata.IntMetadata, value: Int) {
+        
+    }
+    
+    private static func getMetadataBlock(metadataContainer: Block, name: String) -> Block? {
+        for block in metadataContainer.children {
+            if block.type == name {
+                return block
+            }
+        }
+        return nil
+    }
+    
+    private static func readMetadata(metadata: Block) -> Data? {
+        let data = metadata.data
+        let sizeData = data.advanced(by: 4)
+        let typeData = data.advanced(by: 4)
+        let shouldBeNullData = data.advanced(by: 8)
+        
+        let size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
+        guard let type = String(bytes: typeData, encoding: .macOSRoman), type == "data" else {
+            return nil
+        }
+        
+        for byte in shouldBeNullData {
+            if byte != 0x00 {
+                return nil
+            }
+        }
+        
+        guard size == shouldBeNullData.count + typeData.count + sizeData.count + data.count else {
+            return nil
+        }
+        
+        return data
+    }
+    
+    public func findBlock(_ pathComponents: [String]) -> Block? {
+        assert(!pathComponents.isEmpty)
+        
+        var blocks = self.blocks
+        for component in pathComponents {
+            if let block = M4AFile.getBlockOneLevel(blocks: blocks, type: component) {
+                if component == pathComponents.last! {
+                    return block
+                } else {
+                    blocks = block.children
+                }
+            } else {
+                return nil
+            }
+        }
+        return nil
+    }
+    
+    private static func getBlockOneLevel(blocks: [Block], type: String) -> Block? {
+        for block in blocks {
+            if block.type == type {
+                return block
+            }
+        }
+        return nil
+    }
+    
     private func typeIsValid(_ type: String) -> Bool {
         return M4AFile.validTypes.contains(type)
     }
-    
 }
