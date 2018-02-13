@@ -30,7 +30,7 @@ class M4AToolsTests: XCTestCase {
 
         do {
             let data = try Data(contentsOf: url!)
-            let audio = try M4AFile(data)
+            _ = try M4AFile(data)
         } catch {
             XCTFail()
         }
@@ -45,6 +45,21 @@ class M4AToolsTests: XCTestCase {
             let data = try Data(contentsOf: url!)
             let audio = try M4AFile(data)
             try audio.write(url: outURL)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testReadAlbumTitle() {
+        let bundle = Bundle(for: type(of: self))
+        let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
+        XCTAssertNotNil(url)
+        
+        do {
+            let data = try Data(contentsOf: url!)
+            let audio = try M4AFile(data)
+            
+            XCTAssert(audio.getStringMetadata(.album) == "Album")
         } catch {
             XCTFail()
         }

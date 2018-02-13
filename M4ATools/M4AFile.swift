@@ -246,20 +246,19 @@ public class M4AFile {
     }
     
     private static func readMetadata(metadata: Block) -> Data? {
-        let data = metadata.data
-        let sizeData = data.advanced(by: 4)
-        let typeData = data.advanced(by: 4)
-        let shouldBeNullData = data.advanced(by: 8)
+        var data = metadata.data
+        let sizeData = data[data.startIndex ..< data.startIndex.advanced(by: 4)]
+        let typeData = data[data.startIndex.advanced(by: 4) ..< data.startIndex.advanced(by: 8)]
+        let shouldBeNullData = data[data.startIndex.advanced(by: 8) ..< data.startIndex.advanced(by: 16)]
+        data = data.advanced(by: sizeData.count + typeData.count + shouldBeNullData.count)
         
         let size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
         guard let type = String(bytes: typeData, encoding: .macOSRoman), type == "data" else {
             return nil
         }
         
-        for byte in shouldBeNullData {
-            if byte != 0x00 {
-                return nil
-            }
+        guard shouldBeNullData.elementsEqual([0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]) else {
+            return nil
         }
         
         guard size == shouldBeNullData.count + typeData.count + sizeData.count + data.count else {
