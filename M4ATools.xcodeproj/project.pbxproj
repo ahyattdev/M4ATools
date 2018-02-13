@@ -13,6 +13,7 @@
 		66B9BE88202CB21000FBEDF4 /* M4AFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B9BE87202CB21000FBEDF4 /* M4AFile.swift */; };
 		66B9BE8A202CB31400FBEDF4 /* sample.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 66B9BE89202CB31400FBEDF4 /* sample.m4a */; };
 		66B9BE8C202D6F2600FBEDF4 /* sample-metadata.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 66B9BE8B202D6F2600FBEDF4 /* sample-metadata.m4a */; };
+		66B9BE8E20337A1500FBEDF4 /* sample-meta2.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 66B9BE8D20337A1500FBEDF4 /* sample-meta2.m4a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +36,7 @@
 		66B9BE87202CB21000FBEDF4 /* M4AFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M4AFile.swift; sourceTree = "<group>"; };
 		66B9BE89202CB31400FBEDF4 /* sample.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = sample.m4a; sourceTree = "<group>"; };
 		66B9BE8B202D6F2600FBEDF4 /* sample-metadata.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "sample-metadata.m4a"; sourceTree = "<group>"; };
+		66B9BE8D20337A1500FBEDF4 /* sample-meta2.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "sample-meta2.m4a"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +91,7 @@
 			children = (
 				66B9BE89202CB31400FBEDF4 /* sample.m4a */,
 				66B9BE8B202D6F2600FBEDF4 /* sample-metadata.m4a */,
+				66B9BE8D20337A1500FBEDF4 /* sample-meta2.m4a */,
 				66B9BE7B202CB1EB00FBEDF4 /* M4AToolsTests.swift */,
 				66B9BE7D202CB1EB00FBEDF4 /* Info.plist */,
 			);
@@ -198,6 +201,7 @@
 			files = (
 				66B9BE8A202CB31400FBEDF4 /* sample.m4a in Resources */,
 				66B9BE8C202D6F2600FBEDF4 /* sample-metadata.m4a in Resources */,
+				66B9BE8E20337A1500FBEDF4 /* sample-meta2.m4a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

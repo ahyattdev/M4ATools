@@ -58,6 +58,12 @@ class M4AToolsTests: XCTestCase {
             
             XCTAssert(audio.getStringMetadata(.album) == "Album")
             XCTAssert(audio.getIntMetadata(.bpm) == 120)
+            
+            let otherURL = bundle.url(forResource: "sample-meta2",
+                                      withExtension: "m4a")!
+            
+            _ = try M4AFile(url: otherURL)
+            
         } catch {
             XCTFail()
         }
@@ -71,11 +77,13 @@ class M4AToolsTests: XCTestCase {
         
         do {
             var m4a = try M4AFile(url: url)
+            m4a.setStringMetadata(.sortingArtist, value: "Arty Artist")
             m4a.setIntMetadata(.gapless, value: 1)
             try m4a.write(url: out)
             
             m4a = try M4AFile(url: out)
             XCTAssert(m4a.getIntMetadata(.gapless) == 1)
+            XCTAssert(m4a.getStringMetadata(.sortingArtist) == "Arty Artist")
         } catch {
             XCTFail()
         }

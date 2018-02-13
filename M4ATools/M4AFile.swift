@@ -154,7 +154,7 @@ public class M4AFile {
             /// Album
             case album = "©alb"
             /// Artist
-            case artist = "©art"
+            case artist = "©ART"
             /// Album Artist
             case albumArtist = "aART"
             /// Comment
@@ -179,7 +179,16 @@ public class M4AFile {
             case purchaseDate = "purd"
             /// Grouping
             case grouping =  "©grp"
-            
+            /// Unknown, can be ignored
+            case misc = "----"
+            /// Sorting album
+            case sortingAlbum = "soal"
+            /// Sorting artist
+            case sortingArtist = "soar"
+            /// Sorting album artist
+            case sortingAlbumArtist = "soaa"
+            /// Sorting composer
+            case sortingComposer = "soco"
         }
         
         /// Metadata with a data type of int
@@ -221,6 +230,11 @@ public class M4AFile {
                                        StringMetadata.lyrics,
                                        StringMetadata.title,
                                        StringMetadata.year,
+                                       StringMetadata.misc,
+                                       StringMetadata.sortingAlbum,
+                                       StringMetadata.sortingArtist,
+                                       StringMetadata.sortingComposer,
+                                       StringMetadata.sortingAlbumArtist,
                                        
                                        IntMetadata.bpm,
                                        IntMetadata.disk,
@@ -229,7 +243,7 @@ public class M4AFile {
                                        IntMetadata.rating,
                                        IntMetadata.track,
                                        
-                                       ImageMetadata.artwork
+                                       ImageMetadata.artwork,
                                        ]
     }
     
