@@ -39,6 +39,7 @@
 		66B9BE8D20337A1500FBEDF4 /* sample-meta2.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "sample-meta2.m4a"; sourceTree = "<group>"; };
 		66B9BE8F203383A600FBEDF4 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		66B9BE90203387D900FBEDF4 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		66B9BE9120338CAD00FBEDF4 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +64,7 @@
 		66B9BE63202CB1EB00FBEDF4 = {
 			isa = PBXGroup;
 			children = (
+				66B9BE9120338CAD00FBEDF4 /* .gitignore */,
 				66B9BE90203387D900FBEDF4 /* README.md */,
 				66B9BE8F203383A600FBEDF4 /* LICENSE */,
 				66B9BE6F202CB1EB00FBEDF4 /* M4ATools */,

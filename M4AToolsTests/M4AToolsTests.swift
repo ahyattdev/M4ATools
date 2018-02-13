@@ -11,18 +11,22 @@ import Foundation
 
 @testable import M4ATools
 
+/// M4ATools tests
 class M4AToolsTests: XCTestCase {
     
+    /// setUp
     override func setUp() {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
     
+    /// tearDown
     override func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
     
+    /// Loads a M4A file
     func testLoadFile() {
         let bundle = Bundle(for: type(of: self))
         let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
@@ -35,6 +39,7 @@ class M4AToolsTests: XCTestCase {
         }
     }
     
+    /// Loads and then writes a M4A file
     func testWriteFile() {
         let outURL = URL(fileURLWithPath: "/tmp/foo.m4a")
         let bundle = Bundle(for: type(of: self))
@@ -48,6 +53,7 @@ class M4AToolsTests: XCTestCase {
         }
     }
     
+    /// Loads a M4A file and reads metadata
     func testReadMetadata() {
         let bundle = Bundle(for: type(of: self))
         let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
@@ -69,6 +75,7 @@ class M4AToolsTests: XCTestCase {
         }
     }
     
+    /// Loads a M4A file and writes metadata
     func testWriteMetadata() {
         let bundle = Bundle(for: type(of: self))
         let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")!
