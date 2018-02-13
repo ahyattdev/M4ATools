@@ -29,8 +29,7 @@ class M4AToolsTests: XCTestCase {
         XCTAssertNotNil(url)
 
         do {
-            let data = try Data(contentsOf: url!)
-            _ = try M4AFile(data)
+            _ = try M4AFile(url: url!)
         } catch {
             XCTFail()
         }
@@ -42,8 +41,7 @@ class M4AToolsTests: XCTestCase {
         let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
 
         do {
-            let data = try Data(contentsOf: url!)
-            let audio = try M4AFile(data)
+            let audio = try M4AFile(url: url!)
             try audio.write(url: outURL)
         } catch {
             XCTFail()
@@ -56,11 +54,28 @@ class M4AToolsTests: XCTestCase {
         XCTAssertNotNil(url)
         
         do {
-            let data = try Data(contentsOf: url!)
-            let audio = try M4AFile(data)
+            let audio = try M4AFile(url: url!)
             
             XCTAssert(audio.getStringMetadata(.album) == "Album")
             XCTAssert(audio.getIntMetadata(.bpm) == 120)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testWriteMetadata() {
+        let bundle = Bundle(for: type(of: self))
+        let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")!
+        
+        let out = URL(fileURLWithPath: "/tmp/writetest.m4a")
+        
+        do {
+            var m4a = try M4AFile(url: url)
+            m4a.setIntMetadata(.gapless, value: 1)
+            try m4a.write(url: out)
+            
+            m4a = try M4AFile(url: out)
+            XCTAssert(m4a.getIntMetadata(.gapless) == 1)
         } catch {
             XCTFail()
         }

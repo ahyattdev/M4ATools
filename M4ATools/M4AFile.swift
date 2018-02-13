@@ -8,6 +8,10 @@
 
 import Foundation
 
+/// Editable representation of a M4A audio file
+///
+/// - Author: Andrew Hyatt <ahyattdev@icloud.com>
+/// - Copyright: Copyright © 2018 Andrew Hyatt
 public class M4AFile {
     
     private struct ByteBlocks {
@@ -24,7 +28,13 @@ public class M4AFile {
         
     }
     
-    public class Block {
+    /// Represents a block within an M4A file
+    ///
+    /// - Note: Often nested within other blocks
+    ///
+    /// - Author: Andrew Hyatt <ahyattdev@icloud.com>
+    /// - Copyright: Copyright © 2018 Andrew Hyatt
+    internal class Block {
         
         let type: String
         var data: Data
@@ -162,13 +172,13 @@ public class M4AFile {
                                      "skip", "jP2 ", "wide", "load", "ctab", "imap", "matt", "kmat", "clip",
                                      "crgn", "sync", "chap", "tmcd", "scpt", "ssrc", "PICT"]
     
-    public var blocks: [Block]
+    internal var blocks: [Block]
     
-    public var metadataBlock: Block? {
+    internal var metadataBlock: Block? {
         return findBlock(["moov", "udta", "meta", "ilst"])
     }
     
-    public init(_ data: Data) throws {
+    public init(data: Data) throws {
         blocks = [Block]()
         
         guard data.count >= 8 else {
@@ -207,6 +217,11 @@ public class M4AFile {
         }
     }
     
+    public convenience init(url: URL) throws {
+        let data = try Data(contentsOf: url)
+        try self.init(data: data)
+    }
+    
     public func write(url: URL) throws {
         var data = Data()
         for block in blocks {
@@ -236,11 +251,11 @@ public class M4AFile {
     
     public func getIntMetadata(_ metadata: Metadata.IntMetadata) -> UInt8? {
         if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
-            guard metadataChild.children[0].data.count == 10 else {
+            guard metadataChild.data.count == 10 else {
                 print("Int metadata should have 2 bytes of data!")
                 return nil
             }
-            return UInt8(metadataChild.children[0].data[9])
+            return UInt8(metadataChild.data[9])
         } else {
             return nil
         }
@@ -264,7 +279,32 @@ public class M4AFile {
     }
     
     public func setIntMetadata(_ metadata: Metadata.IntMetadata, value: UInt8) {
+        // Get data to write to the metadata block
+        var data = ByteBlocks.intIdentifier
         
+        // Write the value
+        data += [0x00, value]
+        
+        if let block = getMetadataBlock(type: metadata.rawValue) {
+            // The block exists, just give it new data
+            block.data = Data(data)
+        } else {
+            // The block doesn't exist, we need to create it
+            var metadataContainer: Block! = metadataBlock
+            if metadataContainer == nil {
+                // Create the metadata block
+                print("TODO: Create metadata block")
+                metadataContainer = nil
+            }
+            
+            data = "data".data(using: .macOSRoman)! + data
+            
+            var size = UInt32(data.count + 4).bigEndian
+            let sizeData = Data(bytes: &size, count: MemoryLayout.size(ofValue: size))
+            data = sizeData + data
+            let block = Block(type: metadata.rawValue, data: Data(data), parent: metadataContainer)
+            metadataContainer.children.append(block)
+        }
     }
     
     private static func getMetadataBlock(metadataContainer: Block, name: String) -> Block? {
@@ -285,21 +325,29 @@ public class M4AFile {
         
         let size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
         guard let type = String(bytes: typeData, encoding: .macOSRoman), type == "data" else {
+            print("Could not get metadata entry type")
             return nil
         }
         
         guard shouldBeNullData.elementsEqual(ByteBlocks.stringIdentifier) ||
             shouldBeNullData.elementsEqual(ByteBlocks.intIdentifier) else {
+                print("Invalid metadata entry block " + metadata.type)
             return nil
         }
         
         guard size == shouldBeNullData.count + typeData.count + sizeData.count + data.count else {
+            print("Invalid metadata entry block " + metadata.type)
             return nil
         }
         
         return data
     }
     
+    /// Gets a metadata block when givena type
+    /// - parameters:
+    ///   - type: Metadata type name.
+    /// - returns:
+    /// The child block inside the metadata block, not the parent block.
     private func getMetadataBlock(type: String) -> Block? {
         guard let metadataContainerBlock = self.metadataBlock else {
             print("Failed to locate metadata block. Create one in the future.")
@@ -312,11 +360,15 @@ public class M4AFile {
             return nil
         }
         
-        return metaBlock
-
+        guard metaBlock.children.count == 1 else {
+                print("Metadata entry lacked a data section.")
+                return nil
+        }
+        
+        return metaBlock.children[0]
     }
     
-    public func findBlock(_ pathComponents: [String]) -> Block? {
+    internal func findBlock(_ pathComponents: [String]) -> Block? {
         assert(!pathComponents.isEmpty)
         
         var blocks = self.blocks
