@@ -10,10 +10,24 @@ import Foundation
 
 public class M4AFile {
     
+    private struct ByteBlocks {
+        
+        private init() { }
+        
+        static let fourEmptyBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00]
+        static let fourByteOne: [UInt8] = [0x00, 0x00, 0x00, 0x01]
+        
+        static let stringIdentifier: [UInt8] = [0x00, 0x00, 0x00, 0x01, 0x00,
+                                                0x00, 0x00, 0x00]
+        static let intIdentifier: [UInt8] = [0x00, 0x00, 0x00, 0x15, 0x00, 0x00,
+                                             0x00, 0x00]
+        
+    }
+    
     public class Block {
         
         let type: String
-        let data: Data
+        var data: Data
         
         weak var parent: Block?
         
@@ -58,7 +72,7 @@ public class M4AFile {
             let typeData = type.data(using: .macOSRoman)!
             
             if type == "mdat" {
-                outData.append(contentsOf: [0x00, 0x00, 0x00, 0x01])
+                outData.append(contentsOf: ByteBlocks.fourByteOne)
             } else {
                 outData.append(sizeData)
             }
@@ -66,7 +80,7 @@ public class M4AFile {
             outData.append(typeData)
             
             if type == "meta" {
-                outData.append(contentsOf: [0x00, 0x00, 0x00, 0x00])
+                outData.append(contentsOf: ByteBlocks.fourEmptyBytes)
             }
             
             if children.isEmpty {
@@ -221,25 +235,32 @@ public class M4AFile {
     }
     
     public func getIntMetadata(_ metadata: Metadata.IntMetadata) -> UInt8? {
-        guard let metadataContainerBlock = self.metadataBlock else {
+        if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
+            guard metadataChild.children[0].data.count == 10 else {
+                print("Int metadata should have 2 bytes of data!")
+                return nil
+            }
+            return UInt8(metadataChild.children[0].data[9])
+        } else {
             return nil
         }
-        
-        let type = metadata.rawValue
-        
-        guard let metaBlock = M4AFile.getMetadataBlock(metadataContainer: metadataContainerBlock, name: type) else {
-            return nil
-        }
-        
-        guard let data = M4AFile.readMetadata(metadata: metaBlock), data.count == 2 else {
-            return nil
-        }
-        
-        return UInt8(data[1])
     }
     
     public func setStringMetadata(_ metadata: Metadata.StringMetadata, value: String) {
+        // Get data to write to the metadata block
+        var data = ByteBlocks.stringIdentifier
+        guard let stringData = value.data(using: .utf8) else {
+            print("Invalid UTF-8 string given.")
+            return
+        }
+        data += stringData
         
+        // Write the data if the block exists, create block if it doesn't
+        if let block = getMetadataBlock(type: metadata.rawValue) {
+            block.data = Data(data)
+        } else {
+            
+        }
     }
     
     public func setIntMetadata(_ metadata: Metadata.IntMetadata, value: UInt8) {
@@ -267,8 +288,8 @@ public class M4AFile {
             return nil
         }
         
-        guard shouldBeNullData.elementsEqual([0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]) ||
-            shouldBeNullData.elementsEqual([0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00]) else {
+        guard shouldBeNullData.elementsEqual(ByteBlocks.stringIdentifier) ||
+            shouldBeNullData.elementsEqual(ByteBlocks.intIdentifier) else {
             return nil
         }
         
@@ -277,6 +298,22 @@ public class M4AFile {
         }
         
         return data
+    }
+    
+    private func getMetadataBlock(type: String) -> Block? {
+        guard let metadataContainerBlock = self.metadataBlock else {
+            print("Failed to locate metadata block. Create one in the future.")
+            return nil
+        }
+        
+        guard let metaBlock = M4AFile.getMetadataBlock(metadataContainer:
+            metadataContainerBlock, name: type) else {
+                print("Failed to get metadata child block by type.")
+            return nil
+        }
+        
+        return metaBlock
+
     }
     
     public func findBlock(_ pathComponents: [String]) -> Block? {

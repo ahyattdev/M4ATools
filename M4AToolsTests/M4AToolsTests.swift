@@ -60,7 +60,6 @@ class M4AToolsTests: XCTestCase {
             let audio = try M4AFile(data)
             
             XCTAssert(audio.getStringMetadata(.album) == "Album")
-            let a = audio.getIntMetadata(.bpm)
             XCTAssert(audio.getIntMetadata(.bpm) == 120)
         } catch {
             XCTFail()
