@@ -14,15 +14,23 @@ import Foundation
 /// - Copyright: Copyright © 2018 Andrew Hyatt
 public class M4AFile {
     
+    /// Utility byte arrays
     private struct ByteBlocks {
         
+        /// Not needed
         private init() { }
         
+        /// Four null bytes
         static let fourEmptyBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00]
+        
+        /// A big endian 32-bit integer representing one
         static let fourByteOne: [UInt8] = [0x00, 0x00, 0x00, 0x01]
         
+        /// Identifies `String` metadata
         static let stringIdentifier: [UInt8] = [0x00, 0x00, 0x00, 0x01, 0x00,
                                                 0x00, 0x00, 0x00]
+        
+        /// Identifies `UInt8` metadata
         static let intIdentifier: [UInt8] = [0x00, 0x00, 0x00, 0x15, 0x00, 0x00,
                                              0x00, 0x00]
         
@@ -33,13 +41,23 @@ public class M4AFile {
     /// - Note: Often nested within other blocks
     internal class Block {
         
+        /// The block type
         let type: String
+        /// The data of the block
+        /// - note: Is only written on a write call if there are no children
         var data: Data
         
+        /// The parent block, if the block has one
         weak var parent: Block?
         
+        /// Children blocks, may be empty
         var children = [Block]()
         
+        /// Initializes a block
+        ///
+        /// - parameters:
+        ///   - type: The block type
+        ///   - data: The data of the block. Excludes the size and type data.
         init(type: String, data: Data, parent: Block?) {
             self.type = type
             self.data = data
@@ -349,6 +367,12 @@ public class M4AFile {
         try data.write(to: url)
     }
     
+    /// Retrieves metadata of the `String` type
+    ///
+    /// - parameters:
+    ///   - metadata: The metadtata type
+    ///
+    /// - returns: A `String` if the requested key exists
     public func getStringMetadata(_ metadata: Metadata.StringMetadata)
         -> String? {
         guard let metadataContainerBlock = self.metadataBlock else {
@@ -369,6 +393,12 @@ public class M4AFile {
         return String(bytes: data, encoding: .utf8)
     }
     
+    /// Retrieves metadata of the `UInt8` type
+    ///
+    /// - parameters:
+    ///   - metadata: The metadtata type
+    ///
+    /// - returns: A `UInt8` if the requested key exists
     public func getIntMetadata(_ metadata: Metadata.IntMetadata) -> UInt8? {
         if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
             guard metadataChild.data.count == 10 else {
@@ -381,6 +411,11 @@ public class M4AFile {
         }
     }
     
+    /// Sets a `String` metadata key
+    ///
+    /// - parameters:
+    ///   - metadata: The metadtata type
+    ///   - value: The `String` to set the key to
     public func setStringMetadata(_ metadata: Metadata.StringMetadata,
                                   value: String) {
         // Get data to write to the metadata block
@@ -395,10 +430,31 @@ public class M4AFile {
         if let block = getMetadataBlock(type: metadata.rawValue) {
             block.data = Data(data)
         } else {
+            // The block doesn't exist, we need to create it
+            var metadataContainer: Block! = metadataBlock
+            if metadataContainer == nil {
+                // Create the metadata block
+                print("TODO: Create metadata block")
+                metadataContainer = nil
+            }
             
+            data = "data".data(using: .macOSRoman)! + data
+            
+            var size = UInt32(data.count + 4).bigEndian
+            let sizeData = Data(bytes: &size, count:
+                MemoryLayout.size(ofValue: size))
+            data = sizeData + data
+            let block = Block(type: metadata.rawValue, data: Data(data),
+                              parent: metadataContainer)
+            metadataContainer.children.append(block)
         }
     }
     
+    /// Sets a `UInt8` metadata key
+    ///
+    /// - parameters:
+    ///   - metadata: The metadtata type
+    ///   - value: The `UInt8` to set the key to
     public func setIntMetadata(_ metadata: Metadata.IntMetadata, value: UInt8) {
         // Get data to write to the metadata block
         var data = ByteBlocks.intIdentifier
@@ -430,6 +486,13 @@ public class M4AFile {
         }
     }
     
+    /// Gets a metadata block from the metadata container
+    ///
+    /// - parameters:
+    ///   - metadataContainer: Contains all metadata blocks
+    ///   - name: The name of the block to get
+    ///
+    /// - returns: The metadata block if found
     private static func getMetadataBlock(metadataContainer: Block, name: String)
         -> Block? {
         for block in metadataContainer.children {
@@ -440,6 +503,12 @@ public class M4AFile {
         return nil
     }
     
+    /// Turns a metadata block into `Data`
+    ///
+    /// - parameters:
+    ///   - metadata: The metadata to read
+    ///
+    /// - returns: `Data` if the metadata block is valid
     private static func readMetadata(metadata: Block) -> Data? {
         var data = metadata.data
         let sizeData = data[data.startIndex ..< data.startIndex.advanced(by: 4)]
@@ -498,6 +567,14 @@ public class M4AFile {
         return metaBlock.children[0]
     }
     
+    /// Finds a block of the specified path
+    ///
+    /// - parameters:
+    ///   - pathComponents: Block path components.
+    ///     Given in the format `["foo", "bar", "oof"]` where `foo` is the
+    ///     highest level and `oof` is the deepest level.
+    ///
+    /// - returns: The requested block if found
     internal func findBlock(_ pathComponents: [String]) -> Block? {
         assert(!pathComponents.isEmpty)
         
@@ -517,6 +594,13 @@ public class M4AFile {
         return nil
     }
     
+    /// Gets a block from the children of another block
+    ///
+    /// - parameters:
+    ///   - blocks: The block children
+    ///   - type: The block type to search for
+    ///
+    /// - returns: The requested block if it exists
     private static func getBlockOneLevel(blocks: [Block], type: String)
         -> Block? {
         for block in blocks {
@@ -527,6 +611,12 @@ public class M4AFile {
         return nil
     }
     
+    /// Checks if a block type is valid
+    ///
+    /// - parameters:
+    ///   - type: The block type
+    ///
+    /// - returns: The validity of the block type
     private func typeIsValid(_ type: String) -> Bool {
         return M4AFile.validTypes.contains(type)
     }
