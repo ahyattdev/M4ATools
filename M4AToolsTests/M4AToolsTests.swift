@@ -50,7 +50,7 @@ class M4AToolsTests: XCTestCase {
         }
     }
     
-    func testReadAlbumTitle() {
+    func testReadMetadata() {
         let bundle = Bundle(for: type(of: self))
         let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
         XCTAssertNotNil(url)
@@ -60,6 +60,8 @@ class M4AToolsTests: XCTestCase {
             let audio = try M4AFile(data)
             
             XCTAssert(audio.getStringMetadata(.album) == "Album")
+            let a = audio.getIntMetadata(.bpm)
+            XCTAssert(audio.getIntMetadata(.bpm) == 120)
         } catch {
             XCTFail()
         }

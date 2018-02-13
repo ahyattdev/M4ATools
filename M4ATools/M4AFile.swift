@@ -54,8 +54,7 @@ public class M4AFile {
             var outData = to
             var size = UInt32(calculateSize()).bigEndian
             let sizeData = Data(bytes: &size, count: MemoryLayout.size(ofValue: size))
-            print(type)
-            print(type)
+
             let typeData = type.data(using: .macOSRoman)!
             
             if type == "mdat" {
@@ -172,10 +171,8 @@ public class M4AFile {
             
             // Turn size into an integer
             var size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
-            print(size)
             
             let type = String(data: typeData, encoding: .macOSRoman)!
-            print(type)
             
             guard typeIsValid(type) else {
                 throw M4AFileError.invalidBlockType
@@ -189,7 +186,6 @@ public class M4AFile {
             
             // Load block
             let blockContents = data.subdata(in: index.advanced(by: 8) ..< index.advanced(by: size))
-            print(blockContents.description)
             
             index = index.advanced(by: size)
             
@@ -224,15 +220,29 @@ public class M4AFile {
         return String(bytes: data, encoding: .utf8)
     }
     
-    public func getIntMetadata(_ metadata: Metadata.IntMetadata) -> Int? {
-        return nil
+    public func getIntMetadata(_ metadata: Metadata.IntMetadata) -> UInt8? {
+        guard let metadataContainerBlock = self.metadataBlock else {
+            return nil
+        }
+        
+        let type = metadata.rawValue
+        
+        guard let metaBlock = M4AFile.getMetadataBlock(metadataContainer: metadataContainerBlock, name: type) else {
+            return nil
+        }
+        
+        guard let data = M4AFile.readMetadata(metadata: metaBlock), data.count == 2 else {
+            return nil
+        }
+        
+        return UInt8(data[1])
     }
     
     public func setStringMetadata(_ metadata: Metadata.StringMetadata, value: String) {
         
     }
     
-    public func setIntMetadata(_ metadata: Metadata.IntMetadata, value: Int) {
+    public func setIntMetadata(_ metadata: Metadata.IntMetadata, value: UInt8) {
         
     }
     
@@ -257,7 +267,8 @@ public class M4AFile {
             return nil
         }
         
-        guard shouldBeNullData.elementsEqual([0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]) else {
+        guard shouldBeNullData.elementsEqual([0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00]) ||
+            shouldBeNullData.elementsEqual([0x00, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00]) else {
             return nil
         }
         
