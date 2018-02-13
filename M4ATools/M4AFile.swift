@@ -31,9 +31,6 @@ public class M4AFile {
     /// Represents a block within an M4A file
     ///
     /// - Note: Often nested within other blocks
-    ///
-    /// - Author: Andrew Hyatt <ahyattdev@icloud.com>
-    /// - Copyright: Copyright © 2018 Andrew Hyatt
     internal class Block {
         
         let type: String
@@ -49,7 +46,8 @@ public class M4AFile {
             
             // Load child blocks
             // Only explore supported parent blocks for now
-            if type == "moov" || type == "udta" || type == "meta" || type == "ilst" ||
+            if type == "moov" || type == "udta" || type == "meta" ||
+                type == "ilst" ||
                 (parent != nil && parent!.type == "ilst") {
                 var index = data.startIndex
                 
@@ -59,14 +57,19 @@ public class M4AFile {
                 }
                 
                 while index != data.endIndex {
-                    let sizeData = data.subdata(in: index ..< index.advanced(by: 4))
-                    let size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
-                    let typeData = data.subdata(in: index.advanced(by: 4) ..< index.advanced(by: 8))
+                    let sizeData = data.subdata(in: index
+                        ..< index.advanced(by: 4))
+                    let size = Int(UInt32(bigEndian:
+                        sizeData.withUnsafeBytes { $0.pointee }))
+                    let typeData = data.subdata(in: index.advanced(by: 4)
+                        ..< index.advanced(by: 8))
                     let type = String(data: typeData, encoding: .macOSRoman)!
                     
-                    let contents = data.subdata(in: index.advanced(by: 8) ..< index.advanced(by: size))
+                    let contents = data.subdata(in: index.advanced(by: 8)
+                        ..< index.advanced(by: size))
                     
-                    let childBlock = Block(type: type, data: contents, parent: self)
+                    let childBlock = Block(type: type, data: contents,
+                                           parent: self)
                     children.append(childBlock)
                     
                     index = index.advanced(by: size)
@@ -74,10 +77,17 @@ public class M4AFile {
             }
         }
         
+        /// Writes the contents of this block and children to the given `Data`
+        ///
+        /// - parameters:
+        ///   - to: The `Data` to write to
+        ///
+        /// - returns: The modified `Data`
         func write(_ to: Data) -> Data {
             var outData = to
             var size = UInt32(calculateSize()).bigEndian
-            let sizeData = Data(bytes: &size, count: MemoryLayout.size(ofValue: size))
+            let sizeData = Data(bytes: &size, count:
+                MemoryLayout.size(ofValue: size))
 
             let typeData = type.data(using: .macOSRoman)!
             
@@ -103,6 +113,9 @@ public class M4AFile {
             return outData
         }
         
+        /// Calculates block sizes recursively, including children
+        ///
+        /// - returns: Recursive block size
         func calculateSize() -> Int {
             if children.isEmpty {
                 return 8 + data.count
@@ -122,62 +135,123 @@ public class M4AFile {
         
     }
     
+    /// M4A file related errors
     public enum M4AFileError: Error {
         
+        /// When a block of an unknown type is loaded
         case invalidBlockType
+        /// When a file is not valid M4A
         case invalidFile
         
     }
     
+    /// Metadata type identifier strings
     public enum Metadata {
         
+        /// Metadata with a data type of string
         public enum StringMetadata : String {
             
+            /// Album
             case album = "©alb"
+            /// Artist
             case artist = "©art"
+            /// Album Artist
             case albumArtist = "aART"
+            /// Comment
             case comment = "©cmt"
+            /// Year
             case year = "©day"
+            /// Title
             case title = "©nam"
+            /// Custom Genre
             case genreCustom = "©gen"
+            /// Composer
             case composer = "©wrt"
+            /// Encoder
             case encoder = "©too"
+            /// Copyright
             case copyright = "cprt"
+            /// Compilation
             case compilation = "cpil"
+            /// Lyrics
             case lyrics = "©lyr"
+            /// Purchase Date
             case purchaseDate = "purd"
+            /// Grouping
+            case grouping =  "©grp"
             
         }
         
+        /// Metadata with a data type of int
         public enum IntMetadata : String {
             
+            /// Genre ID
             case genreID = "gnre"
+            /// Track
             case track = "trkn"
+            /// Disk
             case disk = "disk"
+            /// BPM
             case bpm = "tmpo"
+            /// Rating
             case rating = "rtng"
+            /// Gapless
             case gapless = "pgap"
             
         }
         
+        /// Metadata with a date type of image
         public enum ImageMetadata: String {
-            
+            /// Artwork
             case artwork = "covr"
             
         }
         
+        /// Used in order to check if metadata is recognized
+        fileprivate static let allValues: [Any] = [StringMetadata.album,
+                                       StringMetadata.albumArtist,
+                                       StringMetadata.artist,
+                                       StringMetadata.comment,
+                                       StringMetadata.compilation,
+                                       StringMetadata.composer,
+                                       StringMetadata.copyright,
+                                       StringMetadata.encoder,
+                                       StringMetadata.genreCustom,
+                                       StringMetadata.grouping,
+                                       StringMetadata.lyrics,
+                                       StringMetadata.title,
+                                       StringMetadata.year,
+                                       
+                                       IntMetadata.bpm,
+                                       IntMetadata.disk,
+                                       IntMetadata.gapless,
+                                       IntMetadata.genreID,
+                                       IntMetadata.rating,
+                                       IntMetadata.track,
+                                       
+                                       ImageMetadata.artwork
+                                       ]
     }
     
-    private static let validTypes = ["ftyp", "mdat", "moov", "pnot", "udta", "uuid", "moof", "free",
-                                     "skip", "jP2 ", "wide", "load", "ctab", "imap", "matt", "kmat", "clip",
-                                     "crgn", "sync", "chap", "tmcd", "scpt", "ssrc", "PICT"]
+    /// Used to check if a block is recognized
+    private static let validTypes = ["ftyp", "mdat", "moov", "pnot", "udta",
+                                     "uuid", "moof", "free",  "skip", "jP2 ",
+                                     "wide", "load", "ctab", "imap", "matt",
+                                     "kmat", "clip", "crgn", "sync", "chap",
+                                     "tmcd", "scpt", "ssrc", "PICT"]
     
+    /// The `Block`s in the M4A file
     internal var blocks: [Block]
     
+    /// Used to get the metadata block
     internal var metadataBlock: Block? {
         return findBlock(["moov", "udta", "meta", "ilst"])
     }
     
+    /// Creates an instance from data
+    /// - parameters:
+    ///   - data: The data of an M4A file
+    /// - throws: `M4AFileError.invalidBlockType`
     public init(data: Data) throws {
         blocks = [Block]()
         
@@ -191,10 +265,12 @@ public class M4AFile {
             // Offset 0 to 4
             let sizeData = data.subdata(in: index ..< index.advanced(by: 4))
             // Offset 4 to 8
-            let typeData = data.subdata(in: index.advanced(by: 4) ..< index.advanced(by: 8))
+            let typeData = data.subdata(in: index.advanced(by: 4)
+                ..< index.advanced(by: 8))
             
             // Turn size into an integer
-            var size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
+            var size = Int(UInt32(bigEndian:
+                sizeData.withUnsafeBytes { $0.pointee }))
             
             let type = String(data: typeData, encoding: .macOSRoman)!
             
@@ -203,25 +279,53 @@ public class M4AFile {
             }
             
             if size == 1 && type == "mdat" {
-                // mdat sometimes has a size of 1 and it's size is 12 bytes into itself
-                let mdatSizeData = data.subdata(in: index.advanced(by: 12) ..< index.advanced(by: 16))
-                size = Int(UInt32(bigEndian: mdatSizeData.withUnsafeBytes { $0.pointee }))
+                // mdat sometimes has a size of 1 and
+                // it's size is 12 bytes into itself
+                let mdatSizeData = data.subdata(in: index.advanced(by: 12)
+                    ..< index.advanced(by: 16))
+                size = Int(UInt32(bigEndian:
+                    mdatSizeData.withUnsafeBytes { $0.pointee }))
             }
             
             // Load block
-            let blockContents = data.subdata(in: index.advanced(by: 8) ..< index.advanced(by: size))
+            let blockContents = data.subdata(in: index.advanced(by: 8)
+                ..< index.advanced(by: size))
             
             index = index.advanced(by: size)
             
             blocks.append(Block(type: type, data: blockContents, parent: nil))
         }
+        
+        // See if loaded metadata identifiers are recognized
+        if let meta = metadataBlock {
+            for block in meta.children {
+                if Metadata.StringMetadata(rawValue: block.type) == nil &&
+                    Metadata.IntMetadata(rawValue: block.type) == nil &&
+                    Metadata.ImageMetadata(rawValue: block.type) == nil
+                    {
+                        print("Unrecognized metadata type: " + block.type)
+                }
+            }
+        }
     }
     
+    /// Initizlizes `M4AFile` from a `URL`
+    ///
+    /// - parameters:
+    ///   - url: The `URL` of an M4A file
+    ///
+    /// - throws: What `init(data:)` throws
     public convenience init(url: URL) throws {
         let data = try Data(contentsOf: url)
         try self.init(data: data)
     }
     
+    /// Outputs an M4A file
+    ///
+    /// - parameters:
+    ///   - url: The `URL` to write the file to
+    ///
+    /// - throws: What `Data.write(to:)` throws
     public func write(url: URL) throws {
         var data = Data()
         for block in blocks {
@@ -231,14 +335,16 @@ public class M4AFile {
         try data.write(to: url)
     }
     
-    public func getStringMetadata(_ metadata: Metadata.StringMetadata) -> String? {
+    public func getStringMetadata(_ metadata: Metadata.StringMetadata)
+        -> String? {
         guard let metadataContainerBlock = self.metadataBlock else {
             return nil
         }
         
         let type = metadata.rawValue
         
-        guard let metaBlock = M4AFile.getMetadataBlock(metadataContainer: metadataContainerBlock, name: type) else {
+        guard let metaBlock = M4AFile.getMetadataBlock(metadataContainer:
+            metadataContainerBlock, name: type) else {
                 return nil
         }
         
@@ -261,7 +367,8 @@ public class M4AFile {
         }
     }
     
-    public func setStringMetadata(_ metadata: Metadata.StringMetadata, value: String) {
+    public func setStringMetadata(_ metadata: Metadata.StringMetadata,
+                                  value: String) {
         // Get data to write to the metadata block
         var data = ByteBlocks.stringIdentifier
         guard let stringData = value.data(using: .utf8) else {
@@ -300,14 +407,17 @@ public class M4AFile {
             data = "data".data(using: .macOSRoman)! + data
             
             var size = UInt32(data.count + 4).bigEndian
-            let sizeData = Data(bytes: &size, count: MemoryLayout.size(ofValue: size))
+            let sizeData = Data(bytes: &size, count:
+                MemoryLayout.size(ofValue: size))
             data = sizeData + data
-            let block = Block(type: metadata.rawValue, data: Data(data), parent: metadataContainer)
+            let block = Block(type: metadata.rawValue, data: Data(data),
+                              parent: metadataContainer)
             metadataContainer.children.append(block)
         }
     }
     
-    private static func getMetadataBlock(metadataContainer: Block, name: String) -> Block? {
+    private static func getMetadataBlock(metadataContainer: Block, name: String)
+        -> Block? {
         for block in metadataContainer.children {
             if block.type == name {
                 return block
@@ -319,12 +429,17 @@ public class M4AFile {
     private static func readMetadata(metadata: Block) -> Data? {
         var data = metadata.data
         let sizeData = data[data.startIndex ..< data.startIndex.advanced(by: 4)]
-        let typeData = data[data.startIndex.advanced(by: 4) ..< data.startIndex.advanced(by: 8)]
-        let shouldBeNullData = data[data.startIndex.advanced(by: 8) ..< data.startIndex.advanced(by: 16)]
-        data = data.advanced(by: sizeData.count + typeData.count + shouldBeNullData.count)
+        let typeData = data[data.startIndex.advanced(by: 4)
+            ..< data.startIndex.advanced(by: 8)]
+        let shouldBeNullData = data[data.startIndex.advanced(by: 8)
+            ..< data.startIndex.advanced(by: 16)]
+        data = data.advanced(by: sizeData.count + typeData.count
+            + shouldBeNullData.count)
         
-        let size = Int(UInt32(bigEndian: sizeData.withUnsafeBytes { $0.pointee }))
-        guard let type = String(bytes: typeData, encoding: .macOSRoman), type == "data" else {
+        let size = Int(UInt32(bigEndian:
+            sizeData.withUnsafeBytes { $0.pointee }))
+        guard let type = String(bytes: typeData, encoding: .macOSRoman),
+            type == "data" else {
             print("Could not get metadata entry type")
             return nil
         }
@@ -335,7 +450,8 @@ public class M4AFile {
             return nil
         }
         
-        guard size == shouldBeNullData.count + typeData.count + sizeData.count + data.count else {
+        guard size == shouldBeNullData.count + typeData.count + sizeData.count
+            + data.count else {
             print("Invalid metadata entry block " + metadata.type)
             return nil
         }
@@ -373,7 +489,8 @@ public class M4AFile {
         
         var blocks = self.blocks
         for component in pathComponents {
-            if let block = M4AFile.getBlockOneLevel(blocks: blocks, type: component) {
+            if let block = M4AFile.getBlockOneLevel(blocks: blocks,
+                                                    type: component) {
                 if component == pathComponents.last! {
                     return block
                 } else {
@@ -386,7 +503,8 @@ public class M4AFile {
         return nil
     }
     
-    private static func getBlockOneLevel(blocks: [Block], type: String) -> Block? {
+    private static func getBlockOneLevel(blocks: [Block], type: String)
+        -> Block? {
         for block in blocks {
             if block.type == type {
                 return block
