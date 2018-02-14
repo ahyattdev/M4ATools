@@ -34,6 +34,8 @@ public class M4AFile {
         static let intIdentifier: [UInt8] = [0x00, 0x00, 0x00, 0x15, 0x00, 0x00,
                                              0x00, 0x00]
         
+        /// Two null bytres
+        static let twoEmptyBytes: [UInt8] = [0x00, 0x00]
     }
     
     /// Represents a block within an M4A file
@@ -214,16 +216,22 @@ public class M4AFile {
             
             /// Genre ID
             case genreID = "gnre"
-            /// Track
-            case track = "trkn"
-            /// Disk
-            case disk = "disk"
             /// BPM
             case bpm = "tmpo"
             /// Rating
             case rating = "rtng"
             /// Gapless
             case gapless = "pgap"
+            
+        }
+        
+        /// Metadata consisting of two 16-bit integers
+        public enum TwoIntMetadata : String {
+            
+            /// Track
+            case track = "trkn"
+            /// Disk
+            case disk = "disk"
             
         }
         
@@ -255,11 +263,12 @@ public class M4AFile {
                                        StringMetadata.sortingAlbumArtist,
                                        
                                        IntMetadata.bpm,
-                                       IntMetadata.disk,
                                        IntMetadata.gapless,
                                        IntMetadata.genreID,
                                        IntMetadata.rating,
-                                       IntMetadata.track,
+                                       
+                                       TwoIntMetadata.track,
+                                       TwoIntMetadata.disk,
                                        
                                        ImageMetadata.artwork,
                                        ]
@@ -333,6 +342,7 @@ public class M4AFile {
             for block in meta.children {
                 if Metadata.StringMetadata(rawValue: block.type) == nil &&
                     Metadata.IntMetadata(rawValue: block.type) == nil &&
+                    Metadata.TwoIntMetadata(rawValue: block.type) == nil &&
                     Metadata.ImageMetadata(rawValue: block.type) == nil
                     {
                         print("Unrecognized metadata type: " + block.type)
@@ -409,6 +419,43 @@ public class M4AFile {
         } else {
             return nil
         }
+    }
+    
+    /// Retrieves metadata consisting of two unsigned 16-bit integers
+    ///
+    /// - parameters:
+    ///   - metadata: The metadtata type
+    ///
+    /// - returns: A tuple consisting of two 16 bit unsigned integers
+    public func getTwoIntMetadata(_ metadata: Metadata.TwoIntMetadata)
+        -> (UInt16, UInt16)? {
+            if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
+                guard metadataChild.data.count == 16 else {
+                    print("Invalid two int metadata read attempted.")
+                    return nil
+                }
+                let data = metadataChild.data
+                let firstIntData =
+                    data[data.startIndex.advanced(by: 10) ..<
+                    data.startIndex.advanced(by: 12)]
+                let secondIntData =
+                    data[data.startIndex.advanced(by: 12) ..<
+                    data.startIndex.advanced(by: 14)]
+                
+                // We are casting back to UInt16 because UInt16 doesn't have a
+                // way to do this
+                let firstInt =
+                    (firstIntData.withUnsafeBytes({ $0.pointee }) as UInt16)
+                        .bigEndian
+
+                let secondInt: UInt16 =
+                    (secondIntData.withUnsafeBytes({ $0.pointee }) as UInt16)
+                        .bigEndian
+                
+                return (firstInt, secondInt)
+            } else {
+                return nil
+            }
     }
     
     /// Sets a `String` metadata key

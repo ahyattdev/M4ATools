@@ -69,7 +69,6 @@ class M4AToolsTests: XCTestCase {
                                       withExtension: "m4a")!
             
             _ = try M4AFile(url: otherURL)
-            
         } catch {
             XCTFail()
         }
