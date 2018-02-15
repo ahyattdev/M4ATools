@@ -14,6 +14,7 @@
 		66B9BE8A202CB31400FBEDF4 /* sample.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 66B9BE89202CB31400FBEDF4 /* sample.m4a */; };
 		66B9BE8C202D6F2600FBEDF4 /* sample-metadata.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 66B9BE8B202D6F2600FBEDF4 /* sample-metadata.m4a */; };
 		66B9BE8E20337A1500FBEDF4 /* sample-meta2.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 66B9BE8D20337A1500FBEDF4 /* sample-meta2.m4a */; };
+		66DBC9B92035F677008B0933 /* M4ATools.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 66DBC9B82035F677008B0933 /* M4ATools.podspec */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +41,7 @@
 		66B9BE8F203383A600FBEDF4 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		66B9BE90203387D900FBEDF4 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		66B9BE9120338CAD00FBEDF4 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		66DBC9B82035F677008B0933 /* M4ATools.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = M4ATools.podspec; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 			isa = PBXGroup;
 			children = (
 				66B9BE9120338CAD00FBEDF4 /* .gitignore */,
+				66DBC9B82035F677008B0933 /* M4ATools.podspec */,
 				66B9BE90203387D900FBEDF4 /* README.md */,
 				66B9BE8F203383A600FBEDF4 /* LICENSE */,
 				66B9BE6F202CB1EB00FBEDF4 /* M4ATools */,
@@ -198,6 +201,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66DBC9B92035F677008B0933 /* M4ATools.podspec in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
