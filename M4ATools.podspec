@@ -64,7 +64,7 @@ A Swift framework for editing M4A files
   #  the deployment target. You can optionally include the target after the platform.
   #
 
-  s.platform     = :osx
+  s.platform     = :osx, "10.12"
   # s.platform     = :ios, "5.0"
 
   #  When using multiple platforms
