@@ -36,6 +36,10 @@ public class M4AFile {
         
         /// Two null bytres
         static let twoEmptyBytes: [UInt8] = [0x00, 0x00]
+        
+        /// Eight null bytes
+        static let eightEmptyBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00,
+                                               0x00, 0x00, 0x00, 0x00]
     }
     
     /// Represents a block within an M4A file
@@ -508,6 +512,48 @@ public class M4AFile {
         
         // Write the value
         data += [0x00, value]
+        
+        if let block = getMetadataBlock(type: metadata.rawValue) {
+            // The block exists, just give it new data
+            block.data = Data(data)
+        } else {
+            // The block doesn't exist, we need to create it
+            var metadataContainer: Block! = metadataBlock
+            if metadataContainer == nil {
+                // Create the metadata block
+                print("TODO: Create metadata block")
+                metadataContainer = nil
+            }
+            
+            data = "data".data(using: .macOSRoman)! + data
+            
+            var size = UInt32(data.count + 4).bigEndian
+            let sizeData = Data(bytes: &size, count:
+                MemoryLayout.size(ofValue: size))
+            data = sizeData + data
+            let block = Block(type: metadata.rawValue, data: Data(data),
+                              parent: metadataContainer)
+            metadataContainer.children.append(block)
+        }
+    }
+    
+    /// Sets a two int metadata key
+    ///
+    /// - parameters:
+    ///   - metadata: The metadtata type
+    ///   - value: The value to set the key to
+    public func setTwoIntMetadata(_ metadata: Metadata.TwoIntMetadata,
+                                  value: (UInt16, UInt16)) {
+        // Get data to write to the metadata block
+        var data = ByteBlocks.eightEmptyBytes
+        
+        var firstInt = value.0.bigEndian
+        var secondInt = value.1.bigEndian
+        // Write the value
+        data += ByteBlocks.twoEmptyBytes
+        data += Data(buffer: UnsafeBufferPointer(start: &firstInt, count: 1))
+        data += Data(buffer: UnsafeBufferPointer(start: &secondInt, count: 1))
+        data += ByteBlocks.twoEmptyBytes
         
         if let block = getMetadataBlock(type: metadata.rawValue) {
             // The block exists, just give it new data
