@@ -381,6 +381,17 @@ public class M4AFile {
         try data.write(to: url)
     }
     
+    /// Generates the data of an M4A file
+    ///
+    /// - returns: `Data` of the file
+    public func write() -> Data {
+        var data = Data()
+        for block in blocks {
+            data = block.write(data)
+        }
+        return data
+    }
+    
     /// Retrieves metadata of the `String` type
     ///
     /// - parameters:

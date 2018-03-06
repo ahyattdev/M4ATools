@@ -1,6 +1,7 @@
 import XCTest
 @testable import M4ATools
 
+/// M4ATools tests
 class M4AToolsTests: XCTestCase {
     
     /// Loads a M4A file
@@ -15,11 +16,9 @@ class M4AToolsTests: XCTestCase {
     /// Loads and then writes a M4A file
     func testWriteFile() {
         let outURL = URL(fileURLWithPath: "/tmp/foo.m4a")
-        let bundle = Bundle(for: type(of: self))
-        let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
-        
+
         do {
-            let audio = try M4AFile(url: url!)
+            let audio = try M4AFile(data: AudioFiles.sampleMetadata)
             try audio.write(url: outURL)
         } catch {
             XCTFail()
@@ -42,16 +41,14 @@ class M4AToolsTests: XCTestCase {
     
     /// Loads a M4A file and writes metadata
     func testWriteMetadata() {
-        let out = URL(fileURLWithPath: "/tmp/writetest.m4a")
-        
         do {
             var m4a = try M4AFile(data: AudioFiles.sampleMetadata)
             m4a.setStringMetadata(.sortingArtist, value: "Arty Artist")
             m4a.setIntMetadata(.gapless, value: 1)
             m4a.setTwoIntMetadata(.track, value: (3, 8))
-            try m4a.write(url: out)
+            let data = m4a.write()
             
-            m4a = try M4AFile(url: out)
+            m4a = try M4AFile(data: data)
             XCTAssert(m4a.getIntMetadata(.gapless) == 1)
             XCTAssert(m4a.getStringMetadata(.sortingArtist) == "Arty Artist")
             guard let track = m4a.getTwoIntMetadata(.track) else {
@@ -63,8 +60,8 @@ class M4AToolsTests: XCTestCase {
             XCTFail()
         }
     }
-
-
+    
+    /// Used by `swift test`
     static var allTests = [
         ("Test Load File", testLoadFile),
         ("Test Write File", testWriteFile),

@@ -1,3 +1,3 @@
 # M4ATools
 
-A description of this package.
+M4A file handling utilities
