@@ -2,15 +2,11 @@ import XCTest
 @testable import M4ATools
 
 class M4AToolsTests: XCTestCase {
-
+    
     /// Loads a M4A file
     func testLoadFile() {
-        let bundle = Bundle(for: type(of: self))
-        let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
-        XCTAssertNotNil(url)
-        
         do {
-            _ = try M4AFile(url: url!)
+            _ = try M4AFile(data: AudioFiles.sampleMetadata)
         } catch {
             XCTFail()
         }
@@ -32,20 +28,13 @@ class M4AToolsTests: XCTestCase {
     
     /// Loads a M4A file and reads metadata
     func testReadMetadata() {
-        let bundle = Bundle(for: type(of: self))
-        let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
-        XCTAssertNotNil(url)
-        
         do {
-            let audio = try M4AFile(url: url!)
+            let audio = try M4AFile(data: AudioFiles.sampleMetadata)
             
             XCTAssert(audio.getStringMetadata(.album) == "Album")
             XCTAssert(audio.getIntMetadata(.bpm) == 120)
             
-            let otherURL = bundle.url(forResource: "sample-meta2",
-                                      withExtension: "m4a")!
-            
-            _ = try M4AFile(url: otherURL)
+            _ = try M4AFile(data: AudioFiles.sampleMetadata2)
         } catch {
             XCTFail()
         }
@@ -53,13 +42,10 @@ class M4AToolsTests: XCTestCase {
     
     /// Loads a M4A file and writes metadata
     func testWriteMetadata() {
-        let bundle = Bundle(for: type(of: self))
-        let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")!
-        
         let out = URL(fileURLWithPath: "/tmp/writetest.m4a")
         
         do {
-            var m4a = try M4AFile(url: url)
+            var m4a = try M4AFile(data: AudioFiles.sampleMetadata)
             m4a.setStringMetadata(.sortingArtist, value: "Arty Artist")
             m4a.setIntMetadata(.gapless, value: 1)
             m4a.setTwoIntMetadata(.track, value: (3, 8))
