@@ -1,37 +1,14 @@
-//
-//  M4AToolsTests.swift
-//  M4AToolsTests
-//
-//  Created by Andrew Hyatt on 2/8/18.
-//  Copyright © 2018 Andrew Hyatt. All rights reserved.
-//
-
 import XCTest
-import Foundation
-
 @testable import M4ATools
 
-/// M4ATools tests
 class M4AToolsTests: XCTestCase {
-    
-    /// setUp
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-    
-    /// tearDown
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-    
+
     /// Loads a M4A file
     func testLoadFile() {
         let bundle = Bundle(for: type(of: self))
         let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
         XCTAssertNotNil(url)
-
+        
         do {
             _ = try M4AFile(url: url!)
         } catch {
@@ -44,7 +21,7 @@ class M4AToolsTests: XCTestCase {
         let outURL = URL(fileURLWithPath: "/tmp/foo.m4a")
         let bundle = Bundle(for: type(of: self))
         let url = bundle.url(forResource: "sample-metadata", withExtension: "m4a")
-
+        
         do {
             let audio = try M4AFile(url: url!)
             try audio.write(url: outURL)
@@ -100,5 +77,12 @@ class M4AToolsTests: XCTestCase {
             XCTFail()
         }
     }
-    
+
+
+    static var allTests = [
+        ("Test Load File", testLoadFile),
+        ("Test Write File", testWriteFile),
+        ("Test Read Metadata", testReadMetadata),
+        ("Test Write Metadata", testWriteMetadata),
+    ]
 }
