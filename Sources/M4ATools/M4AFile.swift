@@ -293,6 +293,9 @@ public class M4AFile {
         return findBlock(["moov", "udta", "meta", "ilst"])
     }
     
+    /// The name of the file, if created from a URL or otherwise set
+    public var fileName: String?
+    
     /// Creates an instance from data
     /// - parameters:
     ///   - data: The data of an M4A file
@@ -364,6 +367,7 @@ public class M4AFile {
     public convenience init(url: URL) throws {
         let data = try Data(contentsOf: url)
         try self.init(data: data)
+        fileName = url.pathComponents.last
     }
     
     /// Outputs an M4A file
