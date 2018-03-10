@@ -231,32 +231,49 @@ public class M4AFile {
             
         }
         
-        /// Metadata with a data type of int
-        public enum IntMetadata : String {
+        /// 8-bit integer metadata
+        public enum UInt8Metadata: String {
             
-            /// Genre ID
-            case genreID = "gnre"
-            /// BPM
-            case bpm = "tmpo"
             /// Rating
             case rating = "rtng"
             /// Gapless
             case gapless = "pgap"
+            /// Media type
+            case mediaType = "stik"
+            /// Genre ID
+            case genreID = "gnre"
+            
+        }
+        
+        /// 16-bit integer metadata
+        public enum UInt16Metadata: String {
+            
+            /// BPM
+            case bpm = "tmpo"
+            
+        }
+        
+        /// 32-bit integer metadata
+        public enum UInt32Metadata: String {
+            
+            /// Unknown
+            case atID = "atID"
+            /// Unknown
+            case geID = "geID"
             /// iTunes Catalog ID
             case catalogID = "cnID"
             /// iTunes country code
             case countryCode = "sfID"
-            /// Media type
-            case mediaType = "stik"
-            /// Unknown
-            case atID = "atID"
-            /// Unknown
-            case plID = "plID"
-            /// Unknown
-            case geID = "geID"
             /// Unknown
             case cmID = "cmID"
             
+        }
+        
+        /// 64-bit integer metadata
+        public enum UInt64Metadata: String {
+            
+            /// Unknown
+            case plID = "plID"
         }
         
         /// Metadata consisting of two 16-bit integers
@@ -300,16 +317,16 @@ public class M4AFile {
                                        StringMetadata.owner,
                                        StringMetadata.xid,
                                        
-                                       IntMetadata.bpm,
-                                       IntMetadata.gapless,
-                                       IntMetadata.genreID,
-                                       IntMetadata.rating,
-                                       IntMetadata.catalogID,
-                                       IntMetadata.countryCode,
-                                       IntMetadata.atID,
-                                       IntMetadata.plID,
-                                       IntMetadata.geID,
-                                       IntMetadata.cmID,
+                                       UInt16Metadata.bpm,
+                                       UInt8Metadata.gapless,
+                                       UInt8Metadata.genreID,
+                                       UInt8Metadata.rating,
+                                       UInt32Metadata.catalogID,
+                                       UInt32Metadata.countryCode,
+                                       UInt32Metadata.atID,
+                                       UInt64Metadata.plID,
+                                       UInt32Metadata.geID,
+                                       UInt32Metadata.cmID,
                                        
                                        TwoIntMetadata.track,
                                        TwoIntMetadata.disc,
@@ -398,7 +415,10 @@ public class M4AFile {
         if let meta = metadataBlock {
             for block in meta.children {
                 if Metadata.StringMetadata(rawValue: block.type) == nil &&
-                    Metadata.IntMetadata(rawValue: block.type) == nil &&
+                    Metadata.UInt8Metadata(rawValue: block.type) == nil &&
+                    Metadata.UInt16Metadata(rawValue: block.type) == nil &&
+                    Metadata.UInt32Metadata(rawValue: block.type) == nil &&
+                    Metadata.UInt64Metadata(rawValue: block.type) == nil &&
                     Metadata.TwoIntMetadata(rawValue: block.type) == nil &&
                     Metadata.ImageMetadata(rawValue: block.type) == nil
                     {
@@ -479,13 +499,84 @@ public class M4AFile {
     ///   - metadata: The metadtata type
     ///
     /// - returns: A `UInt8` if the requested key exists
-    public func getIntMetadata(_ metadata: Metadata.IntMetadata) -> UInt8? {
+    public func getUInt8Metadata(_ metadata: Metadata.UInt8Metadata) -> UInt8? {
         if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
-            guard metadataChild.data.count == 10 else {
-                print("Int metadata should have 2 bytes of data!")
+            guard metadataChild.data.count == 9 else {
+                print("UInt8 metadata should have 1 byte of data!")
                 return nil
             }
-            return UInt8(metadataChild.data[9])
+            return UInt8(metadataChild.data[8])
+        } else {
+            return nil
+        }
+    }
+    
+    /// Retrieves metadata of the `UInt16` type
+    ///
+    /// - Parameter metadata: The metadata type
+    /// - Returns: A `UInt16` value of the requested key exists
+    public func getUInt16Metadata(_ metadata: Metadata.UInt16Metadata) -> UInt16? {
+        if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
+            guard metadataChild.data.count == 10 else {
+                print("UInt16 metadata should have 2 bytes of data!")
+                return nil
+            }
+            let data = [metadataChild.data[9], metadataChild.data[8]]
+            let uint16 = UnsafePointer(data).withMemoryRebound(to: UInt16.self, capacity: 1) {
+                $0.pointee
+            }
+            return uint16
+        } else {
+            return nil
+        }
+    }
+    
+    /// Retrieves metadata of the `UInt32` type
+    ///
+    /// - Parameter metadata: The metadata type
+    /// - Returns: A `UInt32` value of the requested key exists
+    public func getUInt32Metadata(_ metadata: Metadata.UInt16Metadata) -> UInt32? {
+        if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
+            guard metadataChild.data.count == 12 else {
+                print("UInt32 metadata should have 4 bytes of data!")
+                return nil
+            }
+            let data = [metadataChild.data[11], metadataChild.data[10], metadataChild.data[9], metadataChild.data[8]]
+            let uint32 = UnsafePointer(data).withMemoryRebound(to: UInt32.self, capacity: 1) {
+                $0.pointee
+            }
+            return uint32
+        } else {
+            return nil
+        }
+    }
+    
+    /// Retrieves metadata of the `UInt64` type
+    ///
+    /// - Parameter metadata: The metadata type
+    /// - Returns: A `UInt64` value of the requested key exists
+    public func getUInt64Metadata(_ metadata: Metadata.UInt16Metadata) -> UInt64? {
+        if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
+            guard metadataChild.data.count == 16 else {
+                print("UInt64 metadata should have 8 bytes of data!")
+                return nil
+            }
+            var data = [metadataChild.data[15],
+                        metadataChild.data[14],
+                        metadataChild.data[13],
+                        metadataChild.data[12]
+            ]
+            
+            data += [metadataChild.data[11],
+                     metadataChild.data[10],
+                     metadataChild.data[9],
+                     metadataChild.data[8]
+            ]
+            
+            let uint64 = UnsafePointer(data).withMemoryRebound(to: UInt64.self, capacity: 1) {
+                $0.pointee
+            }
+            return uint64
         } else {
             return nil
         }
@@ -567,19 +658,65 @@ public class M4AFile {
         }
     }
     
-    /// Sets a `UInt8` metadata key
+    /// Sets metadata of the type `UInt8`
     ///
     /// - parameters:
     ///   - metadata: The metadtata type
-    ///   - value: The `UInt8` to set the key to
-    public func setIntMetadata(_ metadata: Metadata.IntMetadata, value: UInt8) {
+    ///   - value: The `UInt8` value to set the metadata to
+    public func setUInt8Metadata(_ metadata: Metadata.UInt8Metadata, value: UInt8) {
+        var bigEndian = value.bigEndian
+        let data = Data(buffer: UnsafeBufferPointer(start: &bigEndian, count: 1))
+        write(intData: data, blockType: metadata.rawValue)
+    }
+    
+    /// Sets metadata of the type `UInt16`
+    ///
+    /// - Parameters:
+    ///   - metadata: The metadata type
+    ///   - value: The `UInt16` value to set the metadata to
+    public func setUInt16Metadata(_ metadata: Metadata.UInt16Metadata, value: UInt16) {
+        var bigEndian = value.bigEndian
+        let data = Data(buffer: UnsafeBufferPointer(start: &bigEndian, count: 1))
+        write(intData: data, blockType: metadata.rawValue)
+    }
+    
+    /// Sets metadata of the type `UInt32`
+    ///
+    /// - Parameters:
+    ///   - metadata: The metadata type
+    ///   - value: The `UInt32` value to set the metadata to
+    public func setUInt32Metadata(_ metadata: Metadata.UInt32Metadata, value: UInt32) {
+        var bigEndian = value.bigEndian
+        let data = Data(buffer: UnsafeBufferPointer(start: &bigEndian, count: 1))
+        write(intData: data, blockType: metadata.rawValue)
+    }
+    
+    /// Sets metadata of the type `UInt64`
+    ///
+    /// - Parameters:
+    ///   - metadata: The metadata type
+    ///   - value: The `UInt64` value to set the metadata to
+    public func setUInt64Metadata(_ metadata: Metadata.UInt64Metadata, value: UInt64) {
+        var bigEndian = value.bigEndian
+        let data = Data(buffer: UnsafeBufferPointer(start: &bigEndian, count: 1))
+        write(intData: data, blockType: metadata.rawValue)
+    }
+    
+    
+    /// Write data as integer metadata
+    ///
+    /// - Parameters:
+    ///   - intData: The integer metadata
+    ///   - blockType: The block type identifier as `String`
+    private func write(intData: Data, blockType: String) {
         // Get data to write to the metadata block
         var data = ByteBlocks.intIdentifier
         
         // Write the value
-        data += [0x00, value]
+        data += [0x00]
+        data += intData[intData.startIndex ..< intData.endIndex]
         
-        if let block = getMetadataBlock(type: metadata.rawValue) {
+        if let block = getMetadataBlock(type: blockType) {
             // The block exists, just give it new data
             block.data = Data(data)
         } else {
@@ -597,7 +734,7 @@ public class M4AFile {
             let sizeData = Data(bytes: &size, count:
                 MemoryLayout.size(ofValue: size))
             data = sizeData + data
-            let block = Block(type: metadata.rawValue, data: Data(data),
+            let block = Block(type: blockType, data: Data(data),
                               parent: metadataContainer)
             metadataContainer.children.append(block)
         }
