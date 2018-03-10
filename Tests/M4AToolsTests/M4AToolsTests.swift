@@ -70,8 +70,10 @@ class M4AToolsTests: XCTestCase {
             m4a.setStringMetadata(.year, value: "2014-08-25T07:00:00Z")
             m4a.setStringMetadata(.albumArtist, value: "Andrew Hyatt")
             m4a.setStringMetadata(.copyright, value: "© Andrew Hyatt Recordz")
-            m4a.setUInt8Metadata(.rating, value: 0b00000010)
-            _ = try m4a.write(url: URL(string: "file:///tmp/audio.m4a")!)
+            m4a.setUInt8Metadata(.rating, value: 0b00000001)
+            _ = try m4a.write(url: URL(string: "file:///tmp/audio1.m4a")!)
+            m4a.setUInt8Metadata(.rating, value: 0b00000001)
+            _ = try m4a.write(url: URL(string: "file:///tmp/audio1.m4a")!)
         } catch {
             XCTFail()
         }

@@ -241,7 +241,11 @@ public class M4AFile {
             /// Media type
             case mediaType = "stik"
             /// Genre ID
+            ///
+            /// Old, use `UInt32Metadata.genreID` instead
             case genreID = "gnre"
+            /// Compilation
+            case compilation = "cpil"
             
         }
         
@@ -256,24 +260,24 @@ public class M4AFile {
         /// 32-bit integer metadata
         public enum UInt32Metadata: String {
             
-            /// Unknown
-            case atID = "atID"
-            /// Unknown
-            case geID = "geID"
+            /// Artist ID
+            case artistID = "atID"
+            /// Genre ID
+            case genreID = "geID"
             /// iTunes Catalog ID
             case catalogID = "cnID"
             /// iTunes country code
             case countryCode = "sfID"
-            /// Unknown
-            case cmID = "cmID"
+            /// Composer ID
+            case composerID = "cmID"
             
         }
         
         /// 64-bit integer metadata
         public enum UInt64Metadata: String {
             
-            /// Unknown
-            case plID = "plID"
+            /// Collection ID
+            case collectionID = "plID"
         }
         
         /// Metadata consisting of two 16-bit integers
@@ -298,7 +302,6 @@ public class M4AFile {
                                        StringMetadata.albumArtist,
                                        StringMetadata.artist,
                                        StringMetadata.comment,
-                                       StringMetadata.compilation,
                                        StringMetadata.composer,
                                        StringMetadata.copyright,
                                        StringMetadata.encoder,
@@ -323,10 +326,11 @@ public class M4AFile {
                                        UInt8Metadata.rating,
                                        UInt32Metadata.catalogID,
                                        UInt32Metadata.countryCode,
-                                       UInt32Metadata.atID,
-                                       UInt64Metadata.plID,
-                                       UInt32Metadata.geID,
-                                       UInt32Metadata.cmID,
+                                       UInt32Metadata.artistID,
+                                       UInt64Metadata.collectionID,
+                                       UInt32Metadata.genreID,
+                                       UInt32Metadata.composerID,
+                                       UInt8Metadata.compilation,
                                        
                                        TwoIntMetadata.track,
                                        TwoIntMetadata.disc,
