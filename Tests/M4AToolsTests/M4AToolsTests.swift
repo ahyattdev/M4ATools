@@ -61,6 +61,21 @@ class M4AToolsTests: XCTestCase {
         }
     }
     
+    /// Loads an M4A file with a different structure, writes to it, and writes
+    func testLoadModifyAndWrite() {
+        do {
+            let m4a = try M4AFile(data: AudioFiles.whiteNoise)
+            m4a.setTwoIntMetadata(.disc, value: (1, 2))
+            m4a.setStringMetadata(.year, value: "2014-08-25T07:00:00Z")
+            m4a.setStringMetadata(.albumArtist, value: "Andrew Hyatt")
+            m4a.setStringMetadata(.copyright, value: "© Andrew Hyatt Recordz")
+            m4a.setIntMetadata(.rating, value: 0b00000001)
+            _ = m4a.write()
+        } catch {
+            XCTFail()
+        }
+    }
+    
     /// Used by `swift test`
     static var allTests = [
         ("Test Load File", testLoadFile),
