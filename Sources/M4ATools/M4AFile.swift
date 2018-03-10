@@ -713,7 +713,6 @@ public class M4AFile {
         var data = ByteBlocks.intIdentifier
         
         // Write the value
-        data += [0x00]
         data += intData[intData.startIndex ..< intData.endIndex]
         
         if let block = getMetadataBlock(type: blockType) {

@@ -31,7 +31,7 @@ class M4AToolsTests: XCTestCase {
             let audio = try M4AFile(data: AudioFiles.sampleMetadata)
             
             XCTAssert(audio.getStringMetadata(.album) == "Album")
-            XCTAssert(audio.getIntMetadata(.bpm) == 120)
+            XCTAssert(audio.getUInt16Metadata(.bpm) == 120)
             
             _ = try M4AFile(data: AudioFiles.sampleMetadata2)
         } catch {
@@ -44,12 +44,12 @@ class M4AToolsTests: XCTestCase {
         do {
             var m4a = try M4AFile(data: AudioFiles.sampleMetadata)
             m4a.setStringMetadata(.sortingArtist, value: "Arty Artist")
-            m4a.setIntMetadata(.gapless, value: 1)
+            m4a.setUInt8Metadata(.gapless, value: 1)
             m4a.setTwoIntMetadata(.track, value: (3, 8))
             let data = m4a.write()
             
             m4a = try M4AFile(data: data)
-            XCTAssert(m4a.getIntMetadata(.gapless) == 1)
+            XCTAssert(m4a.getUInt8Metadata(.gapless) == 1)
             XCTAssert(m4a.getStringMetadata(.sortingArtist) == "Arty Artist")
             guard let track = m4a.getTwoIntMetadata(.track) else {
                 XCTFail()
@@ -70,7 +70,7 @@ class M4AToolsTests: XCTestCase {
             m4a.setStringMetadata(.year, value: "2014-08-25T07:00:00Z")
             m4a.setStringMetadata(.albumArtist, value: "Andrew Hyatt")
             m4a.setStringMetadata(.copyright, value: "© Andrew Hyatt Recordz")
-            m4a.setIntMetadata(.rating, value: 0b00000001)
+            m4a.setUInt8Metadata(.rating, value: 0b00000010)
             _ = try m4a.write(url: URL(string: "file:///tmp/audio.m4a")!)
         } catch {
             XCTFail()
