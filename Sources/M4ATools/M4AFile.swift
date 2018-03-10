@@ -12,155 +12,8 @@ import Foundation
 ///
 /// - Author: Andrew Hyatt <ahyattdev@icloud.com>
 /// - Copyright: Copyright © 2018 Andrew Hyatt
-public class M4AFile {
-    
-    /// Utility byte arrays
-    private struct ByteBlocks {
+open class M4AFile {
         
-        /// Not needed
-        private init() { }
-        
-        /// Four null bytes
-        static let fourEmptyBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00]
-        
-        /// A big endian 32-bit integer representing one
-        static let fourByteOne: [UInt8] = [0x00, 0x00, 0x00, 0x01]
-        
-        /// Identifies `String` metadata
-        static let stringIdentifier: [UInt8] = [0x00, 0x00, 0x00, 0x01, 0x00,
-                                                0x00, 0x00, 0x00]
-        
-        /// Identifies `UInt8` metadata
-        static let intIdentifier: [UInt8] = [0x00, 0x00, 0x00, 0x15, 0x00, 0x00,
-                                             0x00, 0x00]
-        
-        /// Two null bytres
-        static let twoEmptyBytes: [UInt8] = [0x00, 0x00]
-        
-        /// Eight null bytes
-        static let eightEmptyBytes: [UInt8] = [0x00, 0x00, 0x00, 0x00,
-                                               0x00, 0x00, 0x00, 0x00]
-    }
-    
-    /// Represents a block within an M4A file
-    ///
-    /// - Note: Often nested within other blocks
-    internal class Block {
-        
-        /// The block type
-        let type: String
-        /// The data of the block
-        /// - note: Is only written on a write call if there are no children
-        var data: Data
-        
-        /// The parent block, if the block has one
-        weak var parent: Block?
-        
-        /// Children blocks, may be empty
-        var children = [Block]()
-        
-        var largeAtomSize = false
-        
-        /// Initializes a block
-        ///
-        /// - parameters:
-        ///   - type: The block type
-        ///   - data: The data of the block. Excludes the size and type data.
-        init(type: String, data: Data, parent: Block?) {
-            self.type = type
-            self.data = data
-            
-            // Load child blocks
-            // Only explore supported parent blocks for now
-            if type == "moov" || type == "udta" || type == "meta" ||
-                type == "ilst" ||
-                (parent != nil && parent!.type == "ilst") {
-                var index = data.startIndex
-                
-                if type == "meta" {
-                    // The first 4 bytes of meta are empty
-                    index = index.advanced(by: 4)
-                }
-                
-                while index != data.endIndex {
-                    let sizeData = data.subdata(in: index
-                        ..< index.advanced(by: 4))
-                    let size = Int(UInt32(bigEndian:
-                        sizeData.withUnsafeBytes { $0.pointee }))
-                    let typeData = data.subdata(in: index.advanced(by: 4)
-                        ..< index.advanced(by: 8))
-                    let type = String(data: typeData, encoding: .macOSRoman)!
-                    
-                    let contents = data.subdata(in: index.advanced(by: 8)
-                        ..< index.advanced(by: size))
-                    
-                    let childBlock = Block(type: type, data: contents,
-                                           parent: self)
-                    children.append(childBlock)
-                    
-                    index = index.advanced(by: size)
-                }
-            }
-        }
-        
-        /// Writes the contents of this block and children to the given `Data`
-        ///
-        /// - parameters:
-        ///   - to: The `Data` to write to
-        ///
-        /// - returns: The modified `Data`
-        func write(_ to: Data) -> Data {
-            var outData = to
-            var size = UInt32(calculateSize()).bigEndian
-            let sizeData = Data(bytes: &size, count:
-                MemoryLayout.size(ofValue: size))
-
-            let typeData = type.data(using: .macOSRoman)!
-            
-            if type == "mdat" && largeAtomSize {
-                outData.append(contentsOf: ByteBlocks.fourByteOne)
-            } else {
-                outData.append(sizeData)
-            }
-            
-            outData.append(typeData)
-            
-            if type == "meta" {
-                outData.append(contentsOf: ByteBlocks.fourEmptyBytes)
-            }
-            
-            if children.isEmpty {
-                outData.append(data)
-            } else {
-                for childBlock in children {
-                    outData = childBlock.write(outData)
-                }
-            }
-            return outData
-        }
-        
-        /// Calculates block sizes recursively, including children
-        ///
-        /// - returns: Recursive block size
-        func calculateSize() -> Int {
-            if children.isEmpty {
-                return 8 + data.count
-            } else {
-                var childSize = 8
-                
-                if type == "meta" {
-                    childSize += 4
-                }
-                
-                for child in children {
-                    childSize += child.calculateSize()
-                }
-                return childSize
-            }
-        }
-        
-    }
-    
     /// M4A file related errors
     public enum M4AFileError: Error {
         
@@ -170,175 +23,7 @@ public class M4AFile {
         case invalidFile
         
     }
-    
-    /// Metadata type identifier strings
-    public enum Metadata {
         
-        /// Metadata with a data type of string
-        public enum StringMetadata : String {
-            
-            /// Album
-            case album = "©alb"
-            /// Artist
-            case artist = "©ART"
-            /// Album Artist
-            case albumArtist = "aART"
-            /// Comment
-            case comment = "©cmt"
-            /// Year
-            /// Can be 4 digit year or release date
-            case year = "©day"
-            /// Title
-            case title = "©nam"
-            /// Custom Genre
-            case genreCustom = "©gen"
-            /// Composer
-            case composer = "©wrt"
-            /// Encoder
-            case encoder = "©too"
-            /// Copyright
-            case copyright = "cprt"
-            /// Compilation
-            case compilation = "cpil"
-            /// Lyrics
-            case lyrics = "©lyr"
-            /// Purchase date
-            case purchaseDate = "purd"
-            /// Grouping
-            case grouping =  "©grp"
-            /// Unknown, can be ignored
-            case misc = "----"
-            /// Sorting title
-            case sortingTitle = "sonm"
-            /// Sorting album
-            case sortingAlbum = "soal"
-            /// Sorting artist
-            case sortingArtist = "soar"
-            /// Sorting album artist
-            case sortingAlbumArtist = "soaa"
-            /// Sorting composer
-            case sortingComposer = "soco"
-            /// Apple ID used to purchase
-            case appleID = "apID"
-            /// Owner
-            case owner = "ownr"
-            /// iTunes XID
-            ///
-            /// https://images.apple.com/itunes/lp-and-extras/docs/Development_Guide.pdf
-            ///
-            /// Yes, it has a space in it 🙄
-            case xid = "xid "
-            
-        }
-        
-        /// 8-bit integer metadata
-        public enum UInt8Metadata: String {
-            
-            /// Rating
-            case rating = "rtng"
-            /// Gapless
-            case gapless = "pgap"
-            /// Media type
-            case mediaType = "stik"
-            /// Genre ID
-            ///
-            /// Old, use `UInt32Metadata.genreID` instead
-            case genreID = "gnre"
-            /// Compilation
-            case compilation = "cpil"
-            
-        }
-        
-        /// 16-bit integer metadata
-        public enum UInt16Metadata: String {
-            
-            /// BPM
-            case bpm = "tmpo"
-            
-        }
-        
-        /// 32-bit integer metadata
-        public enum UInt32Metadata: String {
-            
-            /// Artist ID
-            case artistID = "atID"
-            /// Genre ID
-            case genreID = "geID"
-            /// iTunes Catalog ID
-            case catalogID = "cnID"
-            /// iTunes country code
-            case countryCode = "sfID"
-            /// Composer ID
-            case composerID = "cmID"
-            
-        }
-        
-        /// 64-bit integer metadata
-        public enum UInt64Metadata: String {
-            
-            /// Collection ID
-            case collectionID = "plID"
-        }
-        
-        /// Metadata consisting of two 16-bit integers
-        public enum TwoIntMetadata : String {
-            
-            /// Track
-            case track = "trkn"
-            /// Disc
-            case disc = "disk"
-            
-        }
-        
-        /// Metadata with a date type of image
-        public enum ImageMetadata: String {
-            /// Artwork
-            case artwork = "covr"
-            
-        }
-        
-        /// Used in order to check if metadata is recognized
-        fileprivate static let allValues: [Any] = [StringMetadata.album,
-                                       StringMetadata.albumArtist,
-                                       StringMetadata.artist,
-                                       StringMetadata.comment,
-                                       StringMetadata.composer,
-                                       StringMetadata.copyright,
-                                       StringMetadata.encoder,
-                                       StringMetadata.genreCustom,
-                                       StringMetadata.grouping,
-                                       StringMetadata.lyrics,
-                                       StringMetadata.title,
-                                       StringMetadata.year,
-                                       StringMetadata.misc,
-                                       StringMetadata.sortingTitle,
-                                       StringMetadata.sortingAlbum,
-                                       StringMetadata.sortingArtist,
-                                       StringMetadata.sortingComposer,
-                                       StringMetadata.sortingAlbumArtist,
-                                       StringMetadata.appleID,
-                                       StringMetadata.owner,
-                                       StringMetadata.xid,
-                                       
-                                       UInt16Metadata.bpm,
-                                       UInt8Metadata.gapless,
-                                       UInt8Metadata.genreID,
-                                       UInt8Metadata.rating,
-                                       UInt32Metadata.catalogID,
-                                       UInt32Metadata.countryCode,
-                                       UInt32Metadata.artistID,
-                                       UInt64Metadata.collectionID,
-                                       UInt32Metadata.genreID,
-                                       UInt32Metadata.composerID,
-                                       UInt8Metadata.compilation,
-                                       
-                                       TwoIntMetadata.track,
-                                       TwoIntMetadata.disc,
-                                       
-                                       ImageMetadata.artwork,
-                                       ]
-    }
-    
     /// Used to check if a block is recognized
     private static let validTypes = ["ftyp", "mdat", "moov", "pnot", "udta",
                                      "uuid", "moof", "free",  "skip", "jP2 ",
@@ -355,12 +40,12 @@ public class M4AFile {
     }
     
     /// The name of the file, if created from a URL or otherwise set
-    public var fileName: String?
+    open var fileName: String?
     
     /// The URL the file was loaded from
     ///
     /// If loaded from data this is nil
-    public var url: URL?
+    open var url: URL?
     
     /// Creates an instance from data
     /// - parameters:
@@ -451,7 +136,7 @@ public class M4AFile {
     ///   - url: The `URL` to write the file to
     ///
     /// - throws: What `Data.write(to:)` throws
-    public func write(url: URL) throws {
+    open func write(url: URL) throws {
         var data = Data()
         for block in blocks {
             data = block.write(data)
@@ -463,7 +148,7 @@ public class M4AFile {
     /// Generates the data of an M4A file
     ///
     /// - returns: `Data` of the file
-    public func write() -> Data {
+    open func write() -> Data {
         var data = Data()
         for block in blocks {
             data = block.write(data)
@@ -477,7 +162,7 @@ public class M4AFile {
     ///   - metadata: The metadtata type
     ///
     /// - returns: A `String` if the requested key exists
-    public func getStringMetadata(_ metadata: Metadata.StringMetadata)
+    open func getStringMetadata(_ metadata: Metadata.StringMetadata)
         -> String? {
         guard let metadataContainerBlock = self.metadataBlock else {
             return nil
@@ -503,7 +188,7 @@ public class M4AFile {
     ///   - metadata: The metadtata type
     ///
     /// - returns: A `UInt8` if the requested key exists
-    public func getUInt8Metadata(_ metadata: Metadata.UInt8Metadata) -> UInt8? {
+    open func getUInt8Metadata(_ metadata: Metadata.UInt8Metadata) -> UInt8? {
         if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
             guard metadataChild.data.count == 9 else {
                 print("UInt8 metadata should have 1 byte of data!")
@@ -519,7 +204,7 @@ public class M4AFile {
     ///
     /// - Parameter metadata: The metadata type
     /// - Returns: A `UInt16` value of the requested key exists
-    public func getUInt16Metadata(_ metadata: Metadata.UInt16Metadata) -> UInt16? {
+    open func getUInt16Metadata(_ metadata: Metadata.UInt16Metadata) -> UInt16? {
         if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
             guard metadataChild.data.count == 10 else {
                 print("UInt16 metadata should have 2 bytes of data!")
@@ -539,7 +224,7 @@ public class M4AFile {
     ///
     /// - Parameter metadata: The metadata type
     /// - Returns: A `UInt32` value of the requested key exists
-    public func getUInt32Metadata(_ metadata: Metadata.UInt16Metadata) -> UInt32? {
+    open func getUInt32Metadata(_ metadata: Metadata.UInt16Metadata) -> UInt32? {
         if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
             guard metadataChild.data.count == 12 else {
                 print("UInt32 metadata should have 4 bytes of data!")
@@ -559,7 +244,7 @@ public class M4AFile {
     ///
     /// - Parameter metadata: The metadata type
     /// - Returns: A `UInt64` value of the requested key exists
-    public func getUInt64Metadata(_ metadata: Metadata.UInt16Metadata) -> UInt64? {
+    open func getUInt64Metadata(_ metadata: Metadata.UInt16Metadata) -> UInt64? {
         if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
             guard metadataChild.data.count == 16 else {
                 print("UInt64 metadata should have 8 bytes of data!")
@@ -592,7 +277,7 @@ public class M4AFile {
     ///   - metadata: The metadtata type
     ///
     /// - returns: A tuple consisting of two 16 bit unsigned integers
-    public func getTwoIntMetadata(_ metadata: Metadata.TwoIntMetadata)
+    open func getTwoIntMetadata(_ metadata: Metadata.TwoIntMetadata)
         -> (UInt16, UInt16)? {
             if let metadataChild = getMetadataBlock(type: metadata.rawValue) {
                 guard metadataChild.data.count == 16 else {
@@ -628,7 +313,7 @@ public class M4AFile {
     /// - parameters:
     ///   - metadata: The metadtata type
     ///   - value: The `String` to set the key to
-    public func setStringMetadata(_ metadata: Metadata.StringMetadata,
+    open func setStringMetadata(_ metadata: Metadata.StringMetadata,
                                   value: String) {
         // Get data to write to the metadata block
         var data = ByteBlocks.stringIdentifier
@@ -667,7 +352,7 @@ public class M4AFile {
     /// - parameters:
     ///   - metadata: The metadtata type
     ///   - value: The `UInt8` value to set the metadata to
-    public func setUInt8Metadata(_ metadata: Metadata.UInt8Metadata, value: UInt8) {
+    open func setUInt8Metadata(_ metadata: Metadata.UInt8Metadata, value: UInt8) {
         var bigEndian = value.bigEndian
         let data = Data(buffer: UnsafeBufferPointer(start: &bigEndian, count: 1))
         write(intData: data, blockType: metadata.rawValue)
@@ -678,7 +363,7 @@ public class M4AFile {
     /// - Parameters:
     ///   - metadata: The metadata type
     ///   - value: The `UInt16` value to set the metadata to
-    public func setUInt16Metadata(_ metadata: Metadata.UInt16Metadata, value: UInt16) {
+    open func setUInt16Metadata(_ metadata: Metadata.UInt16Metadata, value: UInt16) {
         var bigEndian = value.bigEndian
         let data = Data(buffer: UnsafeBufferPointer(start: &bigEndian, count: 1))
         write(intData: data, blockType: metadata.rawValue)
@@ -689,7 +374,7 @@ public class M4AFile {
     /// - Parameters:
     ///   - metadata: The metadata type
     ///   - value: The `UInt32` value to set the metadata to
-    public func setUInt32Metadata(_ metadata: Metadata.UInt32Metadata, value: UInt32) {
+    open func setUInt32Metadata(_ metadata: Metadata.UInt32Metadata, value: UInt32) {
         var bigEndian = value.bigEndian
         let data = Data(buffer: UnsafeBufferPointer(start: &bigEndian, count: 1))
         write(intData: data, blockType: metadata.rawValue)
@@ -700,7 +385,7 @@ public class M4AFile {
     /// - Parameters:
     ///   - metadata: The metadata type
     ///   - value: The `UInt64` value to set the metadata to
-    public func setUInt64Metadata(_ metadata: Metadata.UInt64Metadata, value: UInt64) {
+    open func setUInt64Metadata(_ metadata: Metadata.UInt64Metadata, value: UInt64) {
         var bigEndian = value.bigEndian
         let data = Data(buffer: UnsafeBufferPointer(start: &bigEndian, count: 1))
         write(intData: data, blockType: metadata.rawValue)
@@ -712,7 +397,7 @@ public class M4AFile {
     /// - Parameters:
     ///   - intData: The integer metadata
     ///   - blockType: The block type identifier as `String`
-    private func write(intData: Data, blockType: String) {
+    internal func write(intData: Data, blockType: String) {
         // Get data to write to the metadata block
         var data = ByteBlocks.intIdentifier
         
@@ -748,7 +433,7 @@ public class M4AFile {
     /// - parameters:
     ///   - metadata: The metadtata type
     ///   - value: The value to set the key to
-    public func setTwoIntMetadata(_ metadata: Metadata.TwoIntMetadata,
+    open func setTwoIntMetadata(_ metadata: Metadata.TwoIntMetadata,
                                   value: (UInt16, UInt16)) {
         // Get data to write to the metadata block
         var data = ByteBlocks.eightEmptyBytes
@@ -919,4 +604,5 @@ public class M4AFile {
     private func typeIsValid(_ type: String) -> Bool {
         return M4AFile.validTypes.contains(type)
     }
+    
 }

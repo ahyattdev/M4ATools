@@ -21,6 +21,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		66D52713205466B800DEB50B /* Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66D52712205466B800DEB50B /* Metadata.swift */; };
+		66D527152054674500DEB50B /* Block.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66D527142054674500DEB50B /* Block.swift */; };
+		66D527172054679200DEB50B /* ByteBlocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66D527162054679200DEB50B /* ByteBlocks.swift */; };
 		OBJ_24 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_6 /* Package.swift */; };
 		OBJ_30 /* AudioFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_12 /* AudioFiles.swift */; };
 		OBJ_31 /* M4AToolsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_13 /* M4AToolsTests.swift */; };
@@ -46,6 +49,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		66D52712205466B800DEB50B /* Metadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Metadata.swift; sourceTree = "<group>"; };
+		66D527142054674500DEB50B /* Block.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Block.swift; sourceTree = "<group>"; };
+		66D527162054679200DEB50B /* ByteBlocks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ByteBlocks.swift; sourceTree = "<group>"; };
 		"M4ATools::M4ATools::Product" /* M4ATools.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = M4ATools.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		"M4ATools::M4AToolsTests::Product" /* M4AToolsTests.xctest */ = {isa = PBXFileReference; lastKnownFileType = file; path = M4AToolsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		OBJ_12 /* AudioFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFiles.swift; sourceTree = "<group>"; };
@@ -127,6 +133,9 @@
 			isa = PBXGroup;
 			children = (
 				OBJ_9 /* M4AFile.swift */,
+				66D52712205466B800DEB50B /* Metadata.swift */,
+				66D527142054674500DEB50B /* Block.swift */,
+				66D527162054679200DEB50B /* ByteBlocks.swift */,
 			);
 			name = M4ATools;
 			path = Sources/M4ATools;
@@ -232,6 +241,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 0;
 			files = (
+				66D527152054674500DEB50B /* Block.swift in Sources */,
+				66D527172054679200DEB50B /* ByteBlocks.swift in Sources */,
+				66D52713205466B800DEB50B /* Metadata.swift in Sources */,
 				OBJ_40 /* M4AFile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
