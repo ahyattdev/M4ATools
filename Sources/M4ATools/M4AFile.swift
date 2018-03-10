@@ -59,6 +59,8 @@ public class M4AFile {
         /// Children blocks, may be empty
         var children = [Block]()
         
+        var largeAtomSize = false
+        
         /// Initializes a block
         ///
         /// - parameters:
@@ -115,7 +117,7 @@ public class M4AFile {
 
             let typeData = type.data(using: .macOSRoman)!
             
-            if type == "mdat" {
+            if type == "mdat" && largeAtomSize {
                 outData.append(contentsOf: ByteBlocks.fourByteOne)
             } else {
                 outData.append(sizeData)
@@ -369,7 +371,9 @@ public class M4AFile {
                 throw M4AFileError.invalidBlockType
             }
             
+            var largeSize = false
             if size == 1 && type == "mdat" {
+                largeSize = true
                 // mdat sometimes has a size of 1 and
                 // it's size is 12 bytes into itself
                 let mdatSizeData = data.subdata(in: index.advanced(by: 12)
@@ -384,7 +388,10 @@ public class M4AFile {
             
             index = index.advanced(by: size)
             
-            blocks.append(Block(type: type, data: blockContents, parent: nil))
+            let block = Block(type: type, data: blockContents, parent: nil)
+            block.largeAtomSize = largeSize
+            
+            blocks.append(block)
         }
         
         // See if loaded metadata identifiers are recognized
