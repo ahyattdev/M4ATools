@@ -184,6 +184,7 @@ public class M4AFile {
             /// Comment
             case comment = "©cmt"
             /// Year
+            /// Can be 4 digit year or release date
             case year = "©day"
             /// Title
             case title = "©nam"
@@ -199,12 +200,14 @@ public class M4AFile {
             case compilation = "cpil"
             /// Lyrics
             case lyrics = "©lyr"
-            /// Purchase Date
+            /// Purchase date
             case purchaseDate = "purd"
             /// Grouping
             case grouping =  "©grp"
             /// Unknown, can be ignored
             case misc = "----"
+            /// Sorting title
+            case sortingTitle = "sonm"
             /// Sorting album
             case sortingAlbum = "soal"
             /// Sorting artist
@@ -213,6 +216,17 @@ public class M4AFile {
             case sortingAlbumArtist = "soaa"
             /// Sorting composer
             case sortingComposer = "soco"
+            /// Apple ID used to purchase
+            case appleID = "apID"
+            /// Owner
+            case owner = "ownr"
+            /// iTunes XID
+            ///
+            /// https://images.apple.com/itunes/lp-and-extras/docs/Development_Guide.pdf
+            ///
+            /// Yes, it has a space in it 🙄
+            case xid = "xid "
+            
         }
         
         /// Metadata with a data type of int
@@ -226,6 +240,18 @@ public class M4AFile {
             case rating = "rtng"
             /// Gapless
             case gapless = "pgap"
+            /// iTunes Catalog ID
+            case catalogID = "cnID"
+            /// iTunes country code
+            case countryCode = "sfID"
+            /// Media type
+            case mediaType = "stik"
+            /// Unknown
+            case atID = "atID"
+            /// Unknown
+            case plID = "plID"
+            /// Unknown
+            case geID = "geID"
             
         }
         
@@ -234,8 +260,8 @@ public class M4AFile {
             
             /// Track
             case track = "trkn"
-            /// Disk
-            case disk = "disk"
+            /// Disc
+            case disc = "disk"
             
         }
         
@@ -261,18 +287,27 @@ public class M4AFile {
                                        StringMetadata.title,
                                        StringMetadata.year,
                                        StringMetadata.misc,
+                                       StringMetadata.sortingTitle,
                                        StringMetadata.sortingAlbum,
                                        StringMetadata.sortingArtist,
                                        StringMetadata.sortingComposer,
                                        StringMetadata.sortingAlbumArtist,
+                                       StringMetadata.appleID,
+                                       StringMetadata.owner,
+                                       StringMetadata.xid,
                                        
                                        IntMetadata.bpm,
                                        IntMetadata.gapless,
                                        IntMetadata.genreID,
                                        IntMetadata.rating,
+                                       IntMetadata.catalogID,
+                                       IntMetadata.countryCode,
+                                       IntMetadata.atID,
+                                       IntMetadata.plID,
+                                       IntMetadata.geID,
                                        
                                        TwoIntMetadata.track,
-                                       TwoIntMetadata.disk,
+                                       TwoIntMetadata.disc,
                                        
                                        ImageMetadata.artwork,
                                        ]
@@ -295,6 +330,11 @@ public class M4AFile {
     
     /// The name of the file, if created from a URL or otherwise set
     public var fileName: String?
+    
+    /// The URL the file was loaded from
+    ///
+    /// If loaded from data this is nil
+    public var url: URL?
     
     /// Creates an instance from data
     /// - parameters:
@@ -368,6 +408,7 @@ public class M4AFile {
         let data = try Data(contentsOf: url)
         try self.init(data: data)
         fileName = url.pathComponents.last
+        self.url = url
     }
     
     /// Outputs an M4A file
