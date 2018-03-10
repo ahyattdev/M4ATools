@@ -65,12 +65,13 @@ class M4AToolsTests: XCTestCase {
     func testLoadModifyAndWrite() {
         do {
             let m4a = try M4AFile(data: AudioFiles.whiteNoise)
+            _ = try m4a.write(url: URL(string: "file:///tmp/audio-orig.m4a")!)
             m4a.setTwoIntMetadata(.disc, value: (1, 2))
             m4a.setStringMetadata(.year, value: "2014-08-25T07:00:00Z")
             m4a.setStringMetadata(.albumArtist, value: "Andrew Hyatt")
             m4a.setStringMetadata(.copyright, value: "© Andrew Hyatt Recordz")
             m4a.setIntMetadata(.rating, value: 0b00000001)
-            _ = m4a.write()
+            _ = try m4a.write(url: URL(string: "file:///tmp/audio.m4a")!)
         } catch {
             XCTFail()
         }
