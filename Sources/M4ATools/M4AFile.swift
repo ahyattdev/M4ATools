@@ -252,6 +252,8 @@ public class M4AFile {
             case plID = "plID"
             /// Unknown
             case geID = "geID"
+            /// Unknown
+            case cmID = "cmID"
             
         }
         
@@ -305,6 +307,7 @@ public class M4AFile {
                                        IntMetadata.atID,
                                        IntMetadata.plID,
                                        IntMetadata.geID,
+                                       IntMetadata.cmID,
                                        
                                        TwoIntMetadata.track,
                                        TwoIntMetadata.disc,
