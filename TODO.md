@@ -7,3 +7,4 @@
 - Support for podcast related metadata
 - Support for artwork
 - Fix files from iTunes being corrupted
+- Implement `Hashable` for `M4AFile`
