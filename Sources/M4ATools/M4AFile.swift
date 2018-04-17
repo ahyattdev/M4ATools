@@ -539,7 +539,8 @@ open class M4AFile {
         
         guard let metaBlock = M4AFile.getMetadataBlock(metadataContainer:
             metadataContainerBlock, name: type) else {
-                print("Failed to get metadata child block by type.")
+                // Part of normal operating conditions
+                //print("Failed to get metadata child block by type.")
             return nil
         }
         
