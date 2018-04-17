@@ -79,11 +79,21 @@ class M4AToolsTests: XCTestCase {
         }
     }
     
+    func testLocalFile() {
+        do {
+            let m4a = try M4AFile(url: URL(fileURLWithPath: "/Users/andrewhyatt/Desktop/wontplay/test2/down under work name.m4a"))
+            
+        } catch {
+            XCTFail()
+        }
+    }
+    
     /// Used by `swift test`
     static var allTests = [
         ("Test Load File", testLoadFile),
         ("Test Write File", testWriteFile),
         ("Test Read Metadata", testReadMetadata),
         ("Test Write Metadata", testWriteMetadata),
+        ("Test Local File", testLocalFile),
     ]
 }

@@ -11,11 +11,10 @@ import Foundation
 public struct Metadata {
     
     /// Hidden
-    private init() {
-        
-    }
+    private init() { }
     
     /// Metadata with a data type of string
+    /// Takes up a variant amount of bytes
     public enum StringMetadata : String {
         
         /// Album
@@ -69,10 +68,15 @@ public struct Metadata {
         ///
         /// Yes, it has a space in it 🙄
         case xid = "xid "
+        /// Work
+        case work = "©wrk"
+        /// Movement
+        case movement = "©mvn"
         
     }
     
     /// 8-bit integer metadata
+    /// The metadata child takes up 9 bytes in the file
     public enum UInt8Metadata: String {
         
         /// Rating
@@ -87,18 +91,27 @@ public struct Metadata {
         case genreID = "gnre"
         /// Compilation
         case compilation = "cpil"
+        /// Show movement
+        case showMovement = "shwm"
         
     }
     
     /// 16-bit integer metadata
+    /// The metadata child takes up 10 bytes in the file
     public enum UInt16Metadata: String {
         
         /// BPM
         case bpm = "tmpo"
+        /// Movement number
+        case movementNumber = "©mvi"
+        /// Movement count
+        case movementCount = "©mvc"
+        
         
     }
     
     /// 32-bit integer metadata
+    /// Takes up 12 bytes in the file
     public enum UInt32Metadata: String {
         
         /// Artist ID
@@ -115,6 +128,7 @@ public struct Metadata {
     }
     
     /// 64-bit integer metadata
+    /// Takes up 16 bytes in the file
     public enum UInt64Metadata: String {
         
         /// Collection ID
@@ -122,6 +136,7 @@ public struct Metadata {
     }
     
     /// Metadata consisting of two 16-bit integers
+    /// Takes up 16 bytes in the file
     public enum TwoIntMetadata : String {
         
         /// Track
@@ -160,18 +175,26 @@ public struct Metadata {
                                             StringMetadata.appleID,
                                             StringMetadata.owner,
                                             StringMetadata.xid,
+                                            StringMetadata.work,
+                                            StringMetadata.movement,
                                             
-                                            UInt16Metadata.bpm,
                                             UInt8Metadata.gapless,
                                             UInt8Metadata.genreID,
                                             UInt8Metadata.rating,
+                                            UInt8Metadata.compilation,
+                                            UInt8Metadata.showMovement,
+                                            
+                                            UInt16Metadata.bpm,
+                                            UInt16Metadata.movementNumber,
+                                            UInt16Metadata.movementCount,
+                                            
                                             UInt32Metadata.catalogID,
                                             UInt32Metadata.countryCode,
                                             UInt32Metadata.artistID,
-                                            UInt64Metadata.collectionID,
                                             UInt32Metadata.genreID,
                                             UInt32Metadata.composerID,
-                                            UInt8Metadata.compilation,
+                                            
+                                            UInt64Metadata.collectionID,
                                             
                                             TwoIntMetadata.track,
                                             TwoIntMetadata.disc,
